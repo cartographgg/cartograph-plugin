@@ -1,0 +1,4 @@
+name: Cartograph
+version: '${version}'
+main: gg.cartograph.plugin.bungeecord.CartographBungeePlugin
+description: Cartograph metrics plugin

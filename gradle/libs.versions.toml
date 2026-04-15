@@ -3,7 +3,7 @@ shadow = "9.4.1"
 spigot-api = "1.20.4-R0.1-SNAPSHOT"
 paper-api = "1.20.4-R0.1-SNAPSHOT"
 velocity-api = "3.3.0-SNAPSHOT"
-bungeecord-api = "1.20-R0.2-SNAPSHOT"
+bungeecord-api = "1.20-R0.3-SNAPSHOT"
 
 [libraries]
 spigot-api = { module = "org.spigotmc:spigot-api", version.ref = "spigot-api" }
