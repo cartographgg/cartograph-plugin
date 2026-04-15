@@ -38,6 +38,9 @@ dependencies {
 tasks.shadowJar {
     archiveBaseName.set("cartograph-forge")
     archiveClassifier.set("")
+    dependencies {
+        include(project(":common"))
+    }
 }
 
 // Point reobfJar at the shadow JAR so the final artifact is reobfuscated
