@@ -4,12 +4,20 @@ spigot-api = "1.20.4-R0.1-SNAPSHOT"
 paper-api = "1.20.4-R0.1-SNAPSHOT"
 velocity-api = "3.3.0-SNAPSHOT"
 bungeecord-api = "1.20-R0.3-SNAPSHOT"
+junit = "5.11.4"
+mockito = "5.15.2"
+mockbukkit = "3.9.0"
 
 [libraries]
 spigot-api = { module = "org.spigotmc:spigot-api", version.ref = "spigot-api" }
 paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api" }
 velocity-api = { module = "com.velocitypowered:velocity-api", version.ref = "velocity-api" }
 bungeecord-api = { module = "net.md-5:bungeecord-api", version.ref = "bungeecord-api" }
+junit-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
+junit-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+mockito-junit = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
+mockbukkit = { module = "com.github.seeseemelk:MockBukkit-v1.20", version.ref = "mockbukkit" }
 
 [plugins]
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
