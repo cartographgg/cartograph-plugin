@@ -9,21 +9,25 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 @Mod("cartograph")
-public class CartographNeoForgeMod {
+public class CartographNeoForgeMod
+{
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    public CartographNeoForgeMod() {
+    public CartographNeoForgeMod()
+    {
         NeoForge.EVENT_BUS.register(this);
     }
 
     @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event) {
+    public void onServerStarting(ServerStartingEvent event)
+    {
         LOGGER.info("Cartograph enabled (NeoForge)");
     }
 
     @SubscribeEvent
-    public void onServerStopping(ServerStoppingEvent event) {
+    public void onServerStopping(ServerStoppingEvent event)
+    {
         LOGGER.info("Cartograph disabled (NeoForge)");
     }
 }

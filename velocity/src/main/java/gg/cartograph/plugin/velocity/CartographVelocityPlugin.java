@@ -10,30 +10,35 @@ import org.slf4j.Logger;
 import javax.inject.Inject;
 
 @Plugin(
-    id = "cartograph",
-    name = "Cartograph",
-    version = "1.0.0-SNAPSHOT",
-    description = "Cartograph metrics plugin",
-    authors = {"Cartograph"}
+        id = "cartograph",
+        name = "Cartograph",
+        version = "1.0.0-SNAPSHOT",
+        description = "Cartograph metrics plugin",
+        authors = {"Cartograph"}
 )
-public class CartographVelocityPlugin {
+public class CartographVelocityPlugin
+{
 
     private final ProxyServer server;
-    private final Logger logger;
+
+    private final Logger      logger;
 
     @Inject
-    public CartographVelocityPlugin(ProxyServer server, Logger logger) {
+    public CartographVelocityPlugin(ProxyServer server, Logger logger)
+    {
         this.server = server;
         this.logger = logger;
     }
 
     @Subscribe
-    public void onProxyInitialization(ProxyInitializeEvent event) {
+    public void onProxyInitialization(ProxyInitializeEvent event)
+    {
         logger.info("Cartograph enabled (Velocity)");
     }
 
     @Subscribe
-    public void onProxyShutdown(ProxyShutdownEvent event) {
+    public void onProxyShutdown(ProxyShutdownEvent event)
+    {
         logger.info("Cartograph disabled (Velocity)");
     }
 }

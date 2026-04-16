@@ -1,6 +1,7 @@
 package gg.cartograph.plugin.common;
 
-public interface CartographPlugin {
+public interface CartographPlugin
+{
 
     void enable();
 
