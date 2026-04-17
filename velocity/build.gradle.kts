@@ -17,6 +17,7 @@ repositories {
 dependencies {
     implementation(project(":common"))
     compileOnly(libs.velocity.api)
+    compileOnly(libs.snakeyaml)
     annotationProcessor(libs.velocity.api)
 }
 

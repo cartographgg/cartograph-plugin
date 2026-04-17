@@ -1,0 +1,21 @@
+api-key: ""
+api-endpoint: "https://api.cartograph.gg"
+
+flags:
+  report-plugins: false
+
+buffer:
+  size-threshold: 50
+  time-threshold: 60
+  max-retries: 3
+
+telemetry:
+  heartbeat:
+    enabled: true
+    interval: 60
+  tps_sample:
+    enabled: true
+    interval: 20
+  latency:
+    enabled: true
+    interval: 30

@@ -7,6 +7,7 @@ bungeecord-api = "1.20-R0.3-SNAPSHOT"
 junit = "5.11.4"
 mockito = "5.15.2"
 mockbukkit = "3.9.0"
+snakeyaml = "2.3"
 
 [libraries]
 spigot-api = { module = "org.spigotmc:spigot-api", version.ref = "spigot-api" }
@@ -18,6 +19,7 @@ junit-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref 
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-junit = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
 mockbukkit = { module = "com.github.seeseemelk:MockBukkit-v1.20", version.ref = "mockbukkit" }
+snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 
 [plugins]
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
