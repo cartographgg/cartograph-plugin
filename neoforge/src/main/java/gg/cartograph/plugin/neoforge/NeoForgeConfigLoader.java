@@ -5,9 +5,21 @@ import gg.cartograph.plugin.common.config.CartographConfig;
 import gg.cartograph.plugin.common.config.TelemetryConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
+/**
+ * Defines the NeoForge configuration spec and loads values into a {@link CartographConfig}.
+ *
+ * <p>All config keys are declared in the static initialiser using the
+ * {@link ModConfigSpec.Builder} API, which generates the TOML file that NeoForge
+ * manages. The {@link #load()} method reads the current spec values and maps them
+ * into the platform-agnostic config model.</p>
+ *
+ * <p>This class only reads from the spec — it never writes config back, makes network
+ * calls, or performs any side effects.</p>
+ */
 public class NeoForgeConfigLoader
 {
 
+    /** The built config spec, registered with NeoForge in {@link CartographNeoForgeMod}. */
     public static final ModConfigSpec SPEC;
 
     private static final ModConfigSpec.ConfigValue<String>  API_KEY;
@@ -90,6 +102,13 @@ public class NeoForgeConfigLoader
         SPEC = builder.build();
     }
 
+    /**
+     * Reads the current values from the NeoForge config spec and returns a populated
+     * {@link CartographConfig}. Should only be called after NeoForge has loaded the
+     * TOML config file (i.e. during or after the server start event).
+     *
+     * @return a fully populated configuration built from the spec values
+     */
     public static CartographConfig load()
     {
         var config = CartographConfig.defaults();

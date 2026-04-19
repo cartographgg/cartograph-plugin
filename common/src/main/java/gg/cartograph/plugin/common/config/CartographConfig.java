@@ -3,6 +3,32 @@ package gg.cartograph.plugin.common.config;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Root configuration model for the Cartograph plugin, shared across all platforms.
+ *
+ * <p>This class is a plain data object — it performs no network I/O, file access, or
+ * side effects of any kind. Platform-specific config loaders populate it from their
+ * respective configuration formats (YAML, TOML, ForgeConfigSpec, etc.).</p>
+ *
+ * <h3>What the plugin sends</h3>
+ * <p>All data transmitted to the Cartograph API is governed by this configuration:</p>
+ * <ul>
+ *     <li><b>apiKey</b> — authenticates the server with the Cartograph API</li>
+ *     <li><b>apiEndpoint</b> — the URL all telemetry is sent to (defaults to
+ *         {@code https://api.cartograph.gg})</li>
+ *     <li><b>flags</b> — feature toggles (e.g. {@code report-plugins} controls whether
+ *         the list of installed plugins/mods is included in telemetry)</li>
+ *     <li><b>telemetry</b> — controls which telemetry types are enabled and how often
+ *         they are collected (heartbeat, TPS sampling, player latency)</li>
+ *     <li><b>buffer</b> — controls how telemetry events are batched before being sent</li>
+ * </ul>
+ *
+ * <p>Server owners can disable any telemetry type individually, or leave the API key
+ * empty to prevent all communication.</p>
+ *
+ * @see BufferConfig
+ * @see TelemetryConfig
+ */
 public class CartographConfig
 {
 
@@ -16,6 +42,21 @@ public class CartographConfig
 
     private Map<String, TelemetryConfig> telemetry = new LinkedHashMap<>();
 
+    /**
+     * Creates a new configuration pre-populated with sensible defaults.
+     *
+     * <p>Default telemetry types and their collection intervals:</p>
+     * <ul>
+     *     <li><b>heartbeat</b> — every 60 seconds</li>
+     *     <li><b>tps_sample</b> — every 20 seconds</li>
+     *     <li><b>latency</b> — every 30 seconds</li>
+     * </ul>
+     *
+     * <p>All telemetry types are enabled by default. The {@code report-plugins} flag
+     * defaults to {@code false} (opt-in only).</p>
+     *
+     * @return a new config instance with default values applied
+     */
     public static CartographConfig defaults()
     {
         var config = new CartographConfig();

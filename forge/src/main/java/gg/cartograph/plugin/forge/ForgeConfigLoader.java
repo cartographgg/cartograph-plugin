@@ -5,9 +5,21 @@ import gg.cartograph.plugin.common.config.CartographConfig;
 import gg.cartograph.plugin.common.config.TelemetryConfig;
 import net.minecraftforge.common.ForgeConfigSpec;
 
+/**
+ * Defines the Forge configuration spec and loads values into a {@link CartographConfig}.
+ *
+ * <p>All config keys are declared in the static initialiser using the
+ * {@link ForgeConfigSpec.Builder} API, which generates the TOML file that Forge
+ * manages. The {@link #load()} method reads the current spec values and maps them
+ * into the platform-agnostic config model.</p>
+ *
+ * <p>This class only reads from the spec — it never writes config back, makes network
+ * calls, or performs any side effects.</p>
+ */
 public class ForgeConfigLoader
 {
 
+    /** The built config spec, registered with Forge in {@link CartographForgeMod}. */
     public static final ForgeConfigSpec SPEC;
 
     private static final ForgeConfigSpec.ConfigValue<String>  API_KEY;
@@ -90,6 +102,13 @@ public class ForgeConfigLoader
         SPEC = builder.build();
     }
 
+    /**
+     * Reads the current values from the Forge config spec and returns a populated
+     * {@link CartographConfig}. Should only be called after Forge has loaded the
+     * TOML config file (i.e. during or after the server start event).
+     *
+     * @return a fully populated configuration built from the spec values
+     */
     public static CartographConfig load()
     {
         var config = CartographConfig.defaults();

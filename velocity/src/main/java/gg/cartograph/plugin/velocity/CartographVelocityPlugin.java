@@ -13,6 +13,16 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.file.Path;
 
+/**
+ * Velocity proxy entry point for the Cartograph plugin.
+ *
+ * <p>Uses Velocity's dependency injection to receive the proxy server, logger, and
+ * data directory. Configuration is loaded from {@code config.yml} in the plugin's
+ * data directory when the proxy initialises. If the config cannot be read, the plugin
+ * logs an error and does not start — no telemetry will be collected or transmitted.</p>
+ *
+ * @see VelocityConfigLoader
+ */
 @Plugin(
         id = "cartograph",
         name = "Cartograph",
