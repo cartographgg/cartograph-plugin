@@ -4,7 +4,7 @@ plugins {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 
@@ -16,10 +16,12 @@ repositories {
 
 dependencies {
     api(project(":common"))
-    compileOnly(libs.spigot.api)
+    compileOnly(libs.spigot.v121.api)
+    testImplementation(libs.spigot.v121.api)
     testImplementation(libs.junit.api)
     testRuntimeOnly(libs.junit.engine)
-    testImplementation(libs.mockbukkit)
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation(libs.mockbukkit.v121)
 }
 
 tasks.test {

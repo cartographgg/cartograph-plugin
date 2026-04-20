@@ -1,25 +1,45 @@
 [versions]
 shadow = "9.4.1"
-spigot-api = "1.20.4-R0.1-SNAPSHOT"
-paper-api = "1.20.4-R0.1-SNAPSHOT"
-velocity-api = "3.3.0-SNAPSHOT"
-bungeecord-api = "1.20-R0.3-SNAPSHOT"
+neoforge-moddev = "2.0.141"
+
+# Bukkit family
+spigot-v121 = "1.21.4-R0.1-SNAPSHOT"
+spigot-v261 = "26.1-R0.1-SNAPSHOT"
+paper-v121 = "1.21.4-R0.1-SNAPSHOT"
+paper-v261 = "26.1-R0.1-SNAPSHOT"
+
+# Proxies
+velocity-v121 = "3.4.0-SNAPSHOT"
+velocity-v261 = "3.4.0-SNAPSHOT"
+bungeecord-v121 = "1.21-R0.3-SNAPSHOT"
+bungeecord-v261 = "26.1-R0.1-SNAPSHOT"
+
+# Mods
+neoforge-v121 = "21.1.77"
+neoforge-v261 = "26.1.2.20-beta"
+
+# Testing
 junit = "5.11.4"
 mockito = "5.15.2"
-mockbukkit = "3.9.0"
+mockbukkit-v121 = "4.108.0"
 snakeyaml = "2.3"
 
 [libraries]
-spigot-api = { module = "org.spigotmc:spigot-api", version.ref = "spigot-api" }
-paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api" }
-velocity-api = { module = "com.velocitypowered:velocity-api", version.ref = "velocity-api" }
-bungeecord-api = { module = "net.md-5:bungeecord-api", version.ref = "bungeecord-api" }
+spigot-v121-api = { module = "org.spigotmc:spigot-api", version.ref = "spigot-v121" }
+spigot-v261-api = { module = "org.spigotmc:spigot-api", version.ref = "spigot-v261" }
+paper-v121-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-v121" }
+paper-v261-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-v261" }
+velocity-v121-api = { module = "com.velocitypowered:velocity-api", version.ref = "velocity-v121" }
+velocity-v261-api = { module = "com.velocitypowered:velocity-api", version.ref = "velocity-v261" }
+bungeecord-v121-api = { module = "net.md-5:bungeecord-api", version.ref = "bungeecord-v121" }
+bungeecord-v261-api = { module = "net.md-5:bungeecord-api", version.ref = "bungeecord-v261" }
 junit-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 junit-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-junit = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
-mockbukkit = { module = "com.github.seeseemelk:MockBukkit-v1.20", version.ref = "mockbukkit" }
+mockbukkit-v121 = { module = "org.mockbukkit.mockbukkit:mockbukkit-v1.21", version.ref = "mockbukkit-v121" }
 snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 
 [plugins]
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+neoforge-moddev = { id = "net.neoforged.moddev", version.ref = "neoforge-moddev" }

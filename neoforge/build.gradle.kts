@@ -1,36 +1,18 @@
 plugins {
     `java-library`
-    id("net.neoforged.moddev") version "2.0.141"
+    alias(libs.plugins.neoforge.moddev)
 }
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 
 neoForge {
-    version = "20.4.251"
-
-    runs {
-        register("server") {
-            server()
-            programArgument("--nogui")
-        }
-    }
-
-    mods {
-        register("cartograph") {
-            sourceSet(sourceSets["main"])
-        }
-    }
+    version = libs.versions.neoforge.v121.get()
 }
 
 dependencies {
     implementation(project(":common"))
-}
-
-tasks.named<Jar>("jar") {
-    from(project(":common").sourceSets["main"].output)
-    archiveBaseName.set("cartograph-neoforge")
 }

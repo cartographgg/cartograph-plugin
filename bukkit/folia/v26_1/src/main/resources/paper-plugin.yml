@@ -1,0 +1,6 @@
+name: Cartograph
+version: '${version}'
+main: gg.cartograph.plugin.folia.CartographFoliaPlugin
+api-version: '26.1'
+description: Cartograph metrics plugin
+folia-supported: true

@@ -1,5 +1,6 @@
 plugins {
     `java-library`
+    alias(libs.plugins.shadow)
 }
 
 java {
@@ -14,6 +15,15 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":bukkit"))
+    implementation(project(":bukkit:folia"))
     compileOnly(libs.paper.v121.api)
+}
+
+tasks.shadowJar {
+    archiveBaseName.set("cartograph-folia-1.21")
+    archiveClassifier.set("")
+}
+
+tasks.build {
+    dependsOn(tasks.shadowJar)
 }

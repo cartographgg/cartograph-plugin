@@ -1,0 +1,5 @@
+name: Cartograph
+version: '${version}'
+main: gg.cartograph.plugin.paper.CartographPaperPlugin
+api-version: '1.21'
+description: Cartograph metrics plugin

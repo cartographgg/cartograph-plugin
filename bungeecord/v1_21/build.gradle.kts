@@ -1,5 +1,6 @@
 plugins {
     `java-library`
+    alias(libs.plugins.shadow)
 }
 
 java {
@@ -15,6 +16,15 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":common"))
+    implementation(project(":bungeecord"))
     compileOnly(libs.bungeecord.v121.api)
+}
+
+tasks.shadowJar {
+    archiveBaseName.set("cartograph-bungeecord-1.21")
+    archiveClassifier.set("")
+}
+
+tasks.build {
+    dependsOn(tasks.shadowJar)
 }

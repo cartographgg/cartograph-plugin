@@ -1,0 +1,5 @@
+name: Cartograph
+version: '${version}'
+main: gg.cartograph.plugin.spigot.CartographSpigotPlugin
+api-version: '1.21'
+description: Cartograph metrics plugin
