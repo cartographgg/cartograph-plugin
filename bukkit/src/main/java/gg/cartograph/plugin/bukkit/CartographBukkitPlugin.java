@@ -14,12 +14,11 @@ import java.util.List;
  * Base class for all Bukkit-derived server implementations (Spigot, Paper, Folia).
  *
  * <p>Handles the shared Bukkit lifecycle: loads configuration from {@code config.yml}
- * on enable, constructs the {@link Cartograph} runtime, then delegates to the
- * platform-specific {@link #enable()} and {@link #disable()} hooks.</p>
+ * on enable, constructs the {@link Cartograph} runtime.</p>
  *
  * @see BukkitConfigLoader
  */
-public abstract class CartographBukkitPlugin extends JavaPlugin implements CartographPlugin
+public abstract class CartographBukkitPlugin extends JavaPlugin
 {
 
     private CartographConfig cartographConfig;
@@ -29,7 +28,6 @@ public abstract class CartographBukkitPlugin extends JavaPlugin implements Carto
     @Override
     public void onDisable()
     {
-        disable();
         cartograph.record(new ShutdownTelemetryEvent(
                 System.currentTimeMillis(),
                 cartograph.getUptime(),
@@ -45,7 +43,6 @@ public abstract class CartographBukkitPlugin extends JavaPlugin implements Carto
         cartograph       = new Cartograph(cartographConfig, new JulCartographLogger(getLogger()));
         cartograph.start();
         cartograph.record(buildBootEvent());
-        enable();
     }
 
     public CartographConfig getCartographConfig()
