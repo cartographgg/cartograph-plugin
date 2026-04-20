@@ -101,7 +101,7 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
                 server.getOnlineMode(),
                 server.hasWhitelist(),
                 server.getMotd(),
-                plugins,
+                cartograph.shouldReportPlugins() ? plugins : null,
                 null,
                 worlds,
                 List.of()

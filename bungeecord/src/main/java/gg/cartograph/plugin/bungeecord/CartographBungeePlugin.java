@@ -107,7 +107,7 @@ public class CartographBungeePlugin extends Plugin
                 proxy.getConfig().isOnlineMode(),
                 null,
                 null,
-                plugins,
+                cartograph.shouldReportPlugins() ? plugins : null,
                 backends,
                 null,
                 List.of()

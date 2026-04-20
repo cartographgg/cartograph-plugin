@@ -121,7 +121,7 @@ public class CartographNeoForgeMod
                 server.usesAuthentication(),
                 null,
                 server.getMotd(),
-                mods,
+                cartograph.shouldReportPlugins() ? mods : null,
                 null,
                 worldList,
                 List.of()

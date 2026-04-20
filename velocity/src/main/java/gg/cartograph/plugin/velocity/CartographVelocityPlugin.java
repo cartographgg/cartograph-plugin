@@ -141,7 +141,7 @@ public class CartographVelocityPlugin
                 server.getConfiguration().isOnlineMode(),
                 null,
                 null,
-                plugins,
+                cartograph.shouldReportPlugins() ? plugins : null,
                 backends,
                 null,
                 List.of()
