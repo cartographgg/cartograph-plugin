@@ -34,6 +34,7 @@ public record BootTelemetryEvent(
         @JsonGetter("wl") Boolean whitelist,
         @JsonGetter("mo") String motd,
         @JsonGetter("pl") List<PluginInfo> plugins,
+        @JsonGetter("bk") List<BackendInfo> backends,
         @JsonGetter("w") List<WorldInfo> worlds,
         @JsonGetter("ft") List<String> features
 ) implements TelemetryEvent
@@ -42,6 +43,6 @@ public record BootTelemetryEvent(
     @JsonGetter("t")
     public String type()
     {
-        return "b";
+        return EventTypes.BOOT;
     }
 }

@@ -4,16 +4,23 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
+import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 import gg.cartograph.plugin.common.Cartograph;
+import gg.cartograph.plugin.common.NodeType;
 import gg.cartograph.plugin.common.config.CartographConfig;
+import gg.cartograph.plugin.common.events.BackendInfo;
+import gg.cartograph.plugin.common.events.BootTelemetryEvent;
+import gg.cartograph.plugin.common.events.OsInfo;
+import gg.cartograph.plugin.common.events.PluginInfo;
 import gg.cartograph.plugin.common.logging.Slf4jCartographLogger;
 import org.slf4j.Logger;
 
 import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Velocity proxy entry point for the Cartograph plugin.
@@ -63,6 +70,7 @@ public class CartographVelocityPlugin
         }
         cartograph = new Cartograph(cartographConfig, new Slf4jCartographLogger(logger));
         cartograph.start();
+        cartograph.record(buildBootEvent());
     }
 
     @Subscribe
@@ -81,5 +89,55 @@ public class CartographVelocityPlugin
     public Cartograph getCartograph()
     {
         return cartograph;
+    }
+
+    private BootTelemetryEvent buildBootEvent()
+    {
+        var version = server.getVersion();
+
+        var plugins = server.getPluginManager().getPlugins().stream()
+                            .map(PluginContainer::getDescription)
+                            .map(d -> new PluginInfo(
+                                    d.getId(),
+                                    d.getVersion().orElse("unknown"),
+                                    true
+                            ))
+                            .toList();
+
+        var backends = server.getAllServers().stream()
+                            .map(s -> {
+                                var info = s.getServerInfo();
+                                var addr = info.getAddress();
+                                return new BackendInfo(info.getName(), addr.getHostString() + ":" + addr.getPort());
+                            })
+                            .toList();
+
+        return new BootTelemetryEvent(
+                System.currentTimeMillis(),
+                version.getName(),
+                version.getVersion(),
+                null,
+                System.getProperty("java.version"),
+                System.getProperty("java.vendor"),
+                new OsInfo(
+                        System.getProperty("os.name"),
+                        System.getProperty("os.version"),
+                        System.getProperty("os.arch")
+                ),
+                server.getPluginManager().getPlugin("cartograph")
+                        .flatMap(p -> p.getDescription().getVersion())
+                        .orElse("unknown"),
+                NodeType.PROXY,
+                server.getConfiguration().getShowMaxPlayers(),
+                null,
+                null,
+                server.getConfiguration().isOnlineMode(),
+                null,
+                null,
+                plugins,
+                backends,
+                null,
+                List.of()
+        );
     }
 }

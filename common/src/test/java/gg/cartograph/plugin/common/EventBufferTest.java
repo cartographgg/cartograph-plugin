@@ -57,7 +57,20 @@ class EventBufferTest
 
     private TelemetryEvent event(String type)
     {
-        return () -> type;
+        return new TelemetryEvent()
+        {
+            @Override
+            public String type()
+            {
+                return type;
+            }
+
+            @Override
+            public Long timestamp()
+            {
+                return System.currentTimeMillis();
+            }
+        };
     }
 
     @Test

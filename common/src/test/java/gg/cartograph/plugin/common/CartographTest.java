@@ -1,6 +1,7 @@
 package gg.cartograph.plugin.common;
 
 import gg.cartograph.plugin.common.config.CartographConfig;
+import gg.cartograph.plugin.common.events.TelemetryEvent;
 import gg.cartograph.plugin.common.logging.CartographLogger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,9 +43,9 @@ class CartographTest
     {
         cartograph.start();
 
-        cartograph.record(() -> "heartbeat");
-        cartograph.record(() -> "heartbeat");
-        cartograph.record(() -> "heartbeat");
+        cartograph.record(event("heartbeat"));
+        cartograph.record(event("heartbeat"));
+        cartograph.record(event("heartbeat"));
 
         // Buffer should have flushed (size threshold = 3), logging at debug level
         verify(logger).debug(contains("3"));
@@ -54,7 +55,7 @@ class CartographTest
     @Test
     void recordBeforeStartLogsWarning()
     {
-        cartograph.record(() -> "heartbeat");
+        cartograph.record(event("heartbeat"));
 
         verify(logger).warn(contains("started"));
     }
@@ -65,7 +66,7 @@ class CartographTest
         cartograph.start();
         cartograph.stop();
 
-        cartograph.record(() -> "heartbeat");
+        cartograph.record(event("heartbeat"));
 
         verify(logger).warn(anyString());
     }
@@ -74,11 +75,29 @@ class CartographTest
     void stopFlushesRemainingEvents()
     {
         cartograph.start();
-        cartograph.record(() -> "heartbeat");
-        cartograph.record(() -> "tps_sample");
+        cartograph.record(event("heartbeat"));
+        cartograph.record(event("tps_sample"));
         cartograph.stop();
 
         // Final flush should have logged at debug level
         verify(logger).debug(contains("2"));
+    }
+
+    private TelemetryEvent event(String type)
+    {
+        return new TelemetryEvent()
+        {
+            @Override
+            public String type()
+            {
+                return type;
+            }
+
+            @Override
+            public Long timestamp()
+            {
+                return System.currentTimeMillis();
+            }
+        };
     }
 }
