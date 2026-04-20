@@ -57,6 +57,11 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
 
     private NodeType detectNodeType()
     {
+        // Config flag overrides platform detection
+        if (cartograph.isProxyBackend()) {
+            return NodeType.BACKEND;
+        }
+
         try {
             var spigotConfig = getServer().spigot().getConfig();
             if (spigotConfig.getBoolean("settings.bungeecord", false)) {

@@ -114,7 +114,7 @@ public class CartographNeoForgeMod
                 ModList.get().getModContainerById("cartograph")
                         .map(c -> c.getModInfo().getVersion().toString())
                         .orElse("unknown"),
-                NodeType.STANDALONE,
+                cartograph.isProxyBackend() ? NodeType.BACKEND : NodeType.STANDALONE, // no platform detection available for NeoForge
                 server.getMaxPlayers(),
                 server.getPlayerList().getViewDistance(),
                 server.getPlayerList().getSimulationDistance(),
