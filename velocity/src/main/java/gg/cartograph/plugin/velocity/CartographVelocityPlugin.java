@@ -14,6 +14,8 @@ import gg.cartograph.plugin.common.events.BackendInfo;
 import gg.cartograph.plugin.common.events.BootTelemetryEvent;
 import gg.cartograph.plugin.common.events.OsInfo;
 import gg.cartograph.plugin.common.events.PluginInfo;
+import gg.cartograph.plugin.common.events.ShutdownReason;
+import gg.cartograph.plugin.common.events.ShutdownTelemetryEvent;
 import gg.cartograph.plugin.common.logging.Slf4jCartographLogger;
 import org.slf4j.Logger;
 
@@ -77,6 +79,11 @@ public class CartographVelocityPlugin
     public void onProxyShutdown(ProxyShutdownEvent event)
     {
         if (cartograph != null) {
+            cartograph.record(new ShutdownTelemetryEvent(
+                    System.currentTimeMillis(),
+                    cartograph.getUptime(),
+                    ShutdownReason.CLEAN
+            ));
             cartograph.stop();
         }
     }

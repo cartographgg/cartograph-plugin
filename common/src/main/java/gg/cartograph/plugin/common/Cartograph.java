@@ -27,6 +27,8 @@ public class Cartograph
 
     private EventBuffer buffer;
 
+    private long startTime;
+
     public Cartograph(CartographConfig config, CartographLogger logger)
     {
         this.config = config;
@@ -38,9 +40,18 @@ public class Cartograph
      */
     public void start()
     {
+        startTime = System.currentTimeMillis();
         buffer = new EventBuffer(config.getBuffer(), this::flushEvents, logger);
         buffer.start();
         logger.info("Cartograph started");
+    }
+
+    /**
+     * Returns the time in milliseconds since {@link #start()} was called.
+     */
+    public long getUptime()
+    {
+        return System.currentTimeMillis() - startTime;
     }
 
     private void flushEvents(List<TelemetryEvent> events)

@@ -7,6 +7,8 @@ import gg.cartograph.plugin.common.events.BackendInfo;
 import gg.cartograph.plugin.common.events.BootTelemetryEvent;
 import gg.cartograph.plugin.common.events.OsInfo;
 import gg.cartograph.plugin.common.events.PluginInfo;
+import gg.cartograph.plugin.common.events.ShutdownReason;
+import gg.cartograph.plugin.common.events.ShutdownTelemetryEvent;
 import gg.cartograph.plugin.common.logging.JulCartographLogger;
 import net.md_5.bungee.api.plugin.Plugin;
 
@@ -47,6 +49,11 @@ public class CartographBungeePlugin extends Plugin
     public void onDisable()
     {
         if (cartograph != null) {
+            cartograph.record(new ShutdownTelemetryEvent(
+                    System.currentTimeMillis(),
+                    cartograph.getUptime(),
+                    ShutdownReason.CLEAN
+            ));
             cartograph.stop();
         }
     }

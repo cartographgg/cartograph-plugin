@@ -6,6 +6,8 @@ import gg.cartograph.plugin.common.config.CartographConfig;
 import gg.cartograph.plugin.common.events.BootTelemetryEvent;
 import gg.cartograph.plugin.common.events.OsInfo;
 import gg.cartograph.plugin.common.events.PluginInfo;
+import gg.cartograph.plugin.common.events.ShutdownReason;
+import gg.cartograph.plugin.common.events.ShutdownTelemetryEvent;
 import gg.cartograph.plugin.common.events.WorldInfo;
 import gg.cartograph.plugin.common.logging.Log4jCartographLogger;
 import net.neoforged.bus.api.IEventBus;
@@ -60,6 +62,11 @@ public class CartographNeoForgeMod
     public void onServerStopping(ServerStoppingEvent event)
     {
         if (cartograph != null) {
+            cartograph.record(new ShutdownTelemetryEvent(
+                    System.currentTimeMillis(),
+                    cartograph.getUptime(),
+                    ShutdownReason.CLEAN
+            ));
             cartograph.stop();
         }
     }

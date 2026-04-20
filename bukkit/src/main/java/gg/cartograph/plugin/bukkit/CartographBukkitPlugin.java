@@ -30,6 +30,11 @@ public abstract class CartographBukkitPlugin extends JavaPlugin implements Carto
     public void onDisable()
     {
         disable();
+        cartograph.record(new ShutdownTelemetryEvent(
+                System.currentTimeMillis(),
+                cartograph.getUptime(),
+                ShutdownReason.CLEAN
+        ));
         cartograph.stop();
     }
 
