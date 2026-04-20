@@ -10,4 +10,10 @@ import gg.cartograph.plugin.bukkit.CartographBukkitPlugin;
  */
 public class CartographPaperPlugin extends CartographBukkitPlugin
 {
+
+    @Override
+    protected double[] getTps()
+    {
+        return getServer().getTPS();
+    }
 }

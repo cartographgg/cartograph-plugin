@@ -2,11 +2,13 @@ package gg.cartograph.plugin.bukkit;
 
 import gg.cartograph.plugin.common.Cartograph;
 import gg.cartograph.plugin.common.NodeType;
+import gg.cartograph.plugin.common.TickSampler;
 import gg.cartograph.plugin.common.config.CartographConfig;
 import gg.cartograph.plugin.common.events.*;
 import gg.cartograph.plugin.common.logging.JulCartographLogger;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.List;
 
@@ -25,6 +27,8 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
 
     private Cartograph cartograph;
 
+    private TickSampler tickSampler;
+
     @Override
     public void onDisable()
     {
@@ -40,38 +44,53 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
     public void onEnable()
     {
         cartographConfig = BukkitConfigLoader.load(this);
-        cartograph       = new Cartograph(cartographConfig, new JulCartographLogger(getLogger()));
+        tickSampler      = new TickSampler();
+        cartograph       = new Cartograph(cartographConfig, new JulCartographLogger(getLogger()), this::buildHeartbeat);
         cartograph.start();
         cartograph.record(buildBootEvent());
+        startTickSampling();
     }
 
-    public CartographConfig getCartographConfig()
+    private HeartbeatTelemetryEvent buildHeartbeat()
     {
-        return cartographConfig;
-    }
+        var server  = getServer();
+        var runtime = Runtime.getRuntime();
+        var osBean = (com.sun.management.OperatingSystemMXBean)
+                ManagementFactory.getOperatingSystemMXBean();
 
-    protected Cartograph getCartograph()
-    {
-        return cartograph;
-    }
+        var meanTick = tickSampler.getMeanTickTime();
+        var peakTick = tickSampler.getPeakTickTime();
+        tickSampler.reset();
 
-    private NodeType detectNodeType()
-    {
-        // Config flag overrides platform detection
-        if (cartograph.isProxyBackend()) {
-            return NodeType.BACKEND;
-        }
+        var chunksLoaded   = 0;
+        var entitiesLoaded = 0;
+        var worlds         = new java.util.ArrayList<WorldMetrics>();
 
-        try {
-            var spigotConfig = getServer().spigot().getConfig();
-            if (spigotConfig.getBoolean("settings.bungeecord", false)) {
-                return NodeType.BACKEND;
+        for (var world : server.getWorlds()) {
+            var chunks   = world.getLoadedChunks().length;
+            var entities = world.getEntities().size();
+            chunksLoaded += chunks;
+            entitiesLoaded += entities;
+            if (WorldMetrics.isNotable(chunks, entities)) {
+                worlds.add(new WorldMetrics(world.getName(), chunks, entities));
             }
-        } catch (Exception ignored) {
-            // spigot() config may not be available on all implementations
         }
 
-        return NodeType.STANDALONE;
+        return new HeartbeatTelemetryEvent(
+                System.currentTimeMillis(),
+                getTps(),
+                meanTick,
+                peakTick,
+                server.getOnlinePlayers().size(),
+                runtime.totalMemory() - runtime.freeMemory(),
+                runtime.maxMemory(),
+                osBean.getProcessCpuLoad(),
+                osBean.getCpuLoad(),
+                Thread.activeCount(),
+                chunksLoaded,
+                entitiesLoaded,
+                worlds.isEmpty() ? null : worlds
+        );
     }
 
     private BootTelemetryEvent buildBootEvent()
@@ -111,5 +130,51 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
                 worlds,
                 List.of()
         );
+    }
+
+    private void startTickSampling()
+    {
+        // Schedule a task every tick to measure actual tick duration
+        final long[] lastTick = {System.nanoTime()};
+        getServer().getScheduler().runTaskTimer(
+                this, () -> {
+                    var now     = System.nanoTime();
+                    var elapsed = (now - lastTick[0]) / 1_000_000.0;
+                    lastTick[0] = now;
+                    tickSampler.recordTick(elapsed);
+                }, 1L, 1L
+        );
+    }
+
+    protected double[] getTps()
+    {
+        return tickSampler.getTps();
+    }
+
+    private NodeType detectNodeType()
+    {
+        if (cartograph.isProxyBackend()) {
+            return NodeType.BACKEND;
+        }
+
+        try {
+            var spigotConfig = getServer().spigot().getConfig();
+            if (spigotConfig.getBoolean("settings.bungeecord", false)) {
+                return NodeType.BACKEND;
+            }
+        } catch (Exception ignored) {
+        }
+
+        return NodeType.STANDALONE;
+    }
+
+    public CartographConfig getCartographConfig()
+    {
+        return cartographConfig;
+    }
+
+    protected Cartograph getCartograph()
+    {
+        return cartograph;
     }
 }

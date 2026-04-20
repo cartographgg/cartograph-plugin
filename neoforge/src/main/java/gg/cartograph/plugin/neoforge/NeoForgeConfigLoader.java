@@ -38,13 +38,6 @@ public class NeoForgeConfigLoader
 
     private static final ModConfigSpec.IntValue HEARTBEAT_INTERVAL;
 
-    private static final ModConfigSpec.BooleanValue TPS_SAMPLE_ENABLED;
-
-    private static final ModConfigSpec.IntValue TPS_SAMPLE_INTERVAL;
-
-    private static final ModConfigSpec.BooleanValue LATENCY_ENABLED;
-
-    private static final ModConfigSpec.IntValue LATENCY_INTERVAL;
 
     static {
         var builder = new ModConfigSpec.Builder();
@@ -90,19 +83,6 @@ public class NeoForgeConfigLoader
                 .defineInRange("interval", 60, 1, Integer.MAX_VALUE);
         builder.pop();
 
-        builder.push("tps_sample");
-        TPS_SAMPLE_ENABLED  = builder.define("enabled", true);
-        TPS_SAMPLE_INTERVAL = builder
-                .comment("Recording interval in seconds")
-                .defineInRange("interval", 20, 1, Integer.MAX_VALUE);
-        builder.pop();
-
-        builder.push("latency");
-        LATENCY_ENABLED  = builder.define("enabled", true);
-        LATENCY_INTERVAL = builder
-                .comment("Recording interval in seconds")
-                .defineInRange("interval", 30, 1, Integer.MAX_VALUE);
-        builder.pop();
 
         builder.pop();
 
@@ -136,15 +116,6 @@ public class NeoForgeConfigLoader
         heartbeat.setInterval(HEARTBEAT_INTERVAL.get());
         config.getTelemetry().put("heartbeat", heartbeat);
 
-        var tpsSample = new TelemetryConfig();
-        tpsSample.setEnabled(TPS_SAMPLE_ENABLED.get());
-        tpsSample.setInterval(TPS_SAMPLE_INTERVAL.get());
-        config.getTelemetry().put("tps_sample", tpsSample);
-
-        var latency = new TelemetryConfig();
-        latency.setEnabled(LATENCY_ENABLED.get());
-        latency.setInterval(LATENCY_INTERVAL.get());
-        config.getTelemetry().put("latency", latency);
 
         return config;
     }

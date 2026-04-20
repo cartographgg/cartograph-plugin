@@ -78,7 +78,7 @@ public class EventBuffer
                 logger.warn("Event added after shutdown, ignoring");
                 return;
             }
-            
+
             events.add(event);
             logger.debug("Added event of type: " + EventTypes.nameOf(event.type()));
 

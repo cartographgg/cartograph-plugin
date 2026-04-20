@@ -17,7 +17,7 @@ class BukkitConfigLoaderTest
 
         assertEquals("", config.getApiKey());
         assertEquals("https://api.cartograph.gg", config.getApiEndpoint());
-        assertFalse(config.getFlags().get("report-plugins"));
+        assertTrue(config.getFlags().get("report-plugins"));
         assertEquals(50, config.getBuffer().getSizeThreshold());
         assertTrue(config.getTelemetry().containsKey("heartbeat"));
     }

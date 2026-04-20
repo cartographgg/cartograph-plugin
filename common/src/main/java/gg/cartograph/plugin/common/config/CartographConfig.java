@@ -48,12 +48,10 @@ public class CartographConfig
      * <p>Default telemetry types and their collection intervals:</p>
      * <ul>
      *     <li><b>heartbeat</b> — every 60 seconds</li>
-     *     <li><b>tps_sample</b> — every 20 seconds</li>
-     *     <li><b>latency</b> — every 30 seconds</li>
      * </ul>
      *
      * <p>All telemetry types are enabled by default. The {@code report-plugins} flag
-     * defaults to {@code false} (opt-in only).</p>
+     * defaults to {@code true} (opt-out only).</p>
      *
      * @return a new config instance with default values applied
      */
@@ -61,19 +59,11 @@ public class CartographConfig
     {
         var config = new CartographConfig();
 
-        config.flags.put("report-plugins", false);
+        config.flags.put("report-plugins", true);
 
         var heartbeat = new TelemetryConfig();
         heartbeat.setInterval(60);
         config.telemetry.put("heartbeat", heartbeat);
-
-        var tpsSample = new TelemetryConfig();
-        tpsSample.setInterval(20);
-        config.telemetry.put("tps_sample", tpsSample);
-
-        var latency = new TelemetryConfig();
-        latency.setInterval(30);
-        config.telemetry.put("latency", latency);
 
         return config;
     }

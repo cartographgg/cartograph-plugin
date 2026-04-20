@@ -25,7 +25,7 @@ class CartographConfigTest
         var config = CartographConfig.defaults();
 
         assertTrue(config.getFlags().containsKey("report-plugins"));
-        assertFalse(config.getFlags().get("report-plugins"));
+        assertTrue(config.getFlags().get("report-plugins"));
     }
 
     @Test
@@ -44,8 +44,7 @@ class CartographConfigTest
         var config = CartographConfig.defaults();
 
         assertTrue(config.getTelemetry().containsKey("heartbeat"));
-        assertTrue(config.getTelemetry().containsKey("tps_sample"));
-        assertTrue(config.getTelemetry().containsKey("latency"));
+        assertEquals(1, config.getTelemetry().size());
     }
 
     @Test
@@ -54,12 +53,7 @@ class CartographConfigTest
         var config = CartographConfig.defaults();
 
         assertEquals(60, config.getTelemetry().get("heartbeat").getInterval());
-        assertEquals(20, config.getTelemetry().get("tps_sample").getInterval());
-        assertEquals(30, config.getTelemetry().get("latency").getInterval());
-
         assertTrue(config.getTelemetry().get("heartbeat").isEnabled());
-        assertTrue(config.getTelemetry().get("tps_sample").isEnabled());
-        assertTrue(config.getTelemetry().get("latency").isEnabled());
     }
 
     @Test
@@ -92,7 +86,7 @@ class CartographConfigTest
         custom.setInterval(10);
         config.getTelemetry().put("custom-type", custom);
 
-        assertEquals(4, config.getTelemetry().size());
+        assertEquals(2, config.getTelemetry().size());
         assertFalse(config.getTelemetry().get("custom-type").isEnabled());
         assertEquals(10, config.getTelemetry().get("custom-type").getInterval());
     }

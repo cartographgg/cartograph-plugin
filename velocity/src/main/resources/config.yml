@@ -13,9 +13,3 @@ telemetry:
   heartbeat:
     enabled: true
     interval: 60
-  tps_sample:
-    enabled: true
-    interval: 20
-  latency:
-    enabled: true
-    interval: 30

@@ -2,21 +2,22 @@ package gg.cartograph.plugin.common;
 
 import gg.cartograph.plugin.common.config.CartographConfig;
 import gg.cartograph.plugin.common.events.EventBuffer;
+import gg.cartograph.plugin.common.events.HeartbeatTelemetryEvent;
 import gg.cartograph.plugin.common.events.TelemetryEvent;
 import gg.cartograph.plugin.common.logging.CartographLogger;
 
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 /**
  * Central coordinator for the Cartograph telemetry runtime.
  *
  * <p>Each platform plugin constructs a single instance, passing in the loaded
- * configuration and a platform-appropriate {@link CartographLogger}. This class
- * owns the {@link EventBuffer} lifecycle and provides {@link #record(TelemetryEvent)}
- * as the entry point for all telemetry events.</p>
- *
- * <p>The flush consumer currently logs at debug level. It will be replaced by an
- * HTTP API client in a future iteration.</p>
+ * configuration, a platform-appropriate {@link CartographLogger}, and a supplier
+ * that builds heartbeat events from platform-specific metrics.</p>
  */
 public class Cartograph
 {
@@ -25,33 +26,32 @@ public class Cartograph
 
     private final CartographLogger logger;
 
+    private final Supplier<HeartbeatTelemetryEvent> heartbeatSupplier;
+
     private EventBuffer buffer;
+
+    private ScheduledExecutorService heartbeatScheduler;
 
     private long startTime;
 
-    public Cartograph(CartographConfig config, CartographLogger logger)
+    public Cartograph(CartographConfig config, CartographLogger logger, Supplier<HeartbeatTelemetryEvent> heartbeatSupplier)
     {
-        this.config = config;
-        this.logger = logger;
+        this.config            = config;
+        this.logger            = logger;
+        this.heartbeatSupplier = heartbeatSupplier;
     }
 
     /**
      * Creates the event buffer and starts time-based flush scheduling.
+     * Also starts the heartbeat scheduler if enabled in config.
      */
     public void start()
     {
         startTime = System.currentTimeMillis();
-        buffer = new EventBuffer(config.getBuffer(), this::flushEvents, logger);
+        buffer    = new EventBuffer(config.getBuffer(), this::flushEvents, logger);
         buffer.start();
+        startHeartbeat();
         logger.info("Cartograph started");
-    }
-
-    /**
-     * Returns the time in milliseconds since {@link #start()} was called.
-     */
-    public long getUptime()
-    {
-        return System.currentTimeMillis() - startTime;
     }
 
     private void flushEvents(List<TelemetryEvent> events)
@@ -59,16 +59,28 @@ public class Cartograph
         logger.debug("Flushing batch of " + events.size() + " events");
     }
 
-    /**
-     * Shuts down the event buffer, performing a final flush.
-     */
-    public void stop()
+    private void startHeartbeat()
     {
-        if (buffer != null) {
-            buffer.shutdown();
-            buffer = null;
+        var heartbeatConfig = config.getTelemetry().get("heartbeat");
+        if (heartbeatConfig == null || !heartbeatConfig.isEnabled()) {
+            return;
         }
-        logger.info("Cartograph stopped");
+
+        heartbeatScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            var thread = new Thread(r, "cartograph-heartbeat");
+            thread.setDaemon(true);
+            return thread;
+        });
+
+        heartbeatScheduler.scheduleAtFixedRate(
+                () -> {
+                    try {
+                        record(heartbeatSupplier.get());
+                    } catch (Exception e) {
+                        logger.error("Failed to collect heartbeat", e);
+                    }
+                }, heartbeatConfig.getInterval(), heartbeatConfig.getInterval(), TimeUnit.SECONDS
+        );
     }
 
     /**
@@ -83,5 +95,39 @@ public class Cartograph
             return;
         }
         buffer.add(event);
+    }
+
+    /**
+     * Returns the time in milliseconds since {@link #start()} was called.
+     */
+    public long getUptime()
+    {
+        return System.currentTimeMillis() - startTime;
+    }
+
+    /**
+     * Shuts down the heartbeat scheduler and event buffer.
+     */
+    public void stop()
+    {
+        if (heartbeatScheduler != null) {
+            heartbeatScheduler.shutdown();
+            heartbeatScheduler = null;
+        }
+        if (buffer != null) {
+            buffer.shutdown();
+            buffer = null;
+        }
+        logger.info("Cartograph stopped");
+    }
+
+    public boolean shouldReportPlugins()
+    {
+        return config.getFlags().getOrDefault("report-plugins", false);
+    }
+
+    public boolean isProxyBackend()
+    {
+        return config.getFlags().getOrDefault("proxy-backend", false);
     }
 }

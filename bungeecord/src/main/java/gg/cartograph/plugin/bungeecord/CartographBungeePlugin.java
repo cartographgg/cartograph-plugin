@@ -3,16 +3,12 @@ package gg.cartograph.plugin.bungeecord;
 import gg.cartograph.plugin.common.Cartograph;
 import gg.cartograph.plugin.common.NodeType;
 import gg.cartograph.plugin.common.config.CartographConfig;
-import gg.cartograph.plugin.common.events.BackendInfo;
-import gg.cartograph.plugin.common.events.BootTelemetryEvent;
-import gg.cartograph.plugin.common.events.OsInfo;
-import gg.cartograph.plugin.common.events.PluginInfo;
-import gg.cartograph.plugin.common.events.ShutdownReason;
-import gg.cartograph.plugin.common.events.ShutdownTelemetryEvent;
+import gg.cartograph.plugin.common.events.*;
 import gg.cartograph.plugin.common.logging.JulCartographLogger;
 import net.md_5.bungee.api.plugin.Plugin;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.util.List;
 
 /**
@@ -40,7 +36,7 @@ public class CartographBungeePlugin extends Plugin
             getLogger().severe("Failed to load config: " + e.getMessage());
             return;
         }
-        cartograph = new Cartograph(cartographConfig, new JulCartographLogger(getLogger()));
+        cartograph = new Cartograph(cartographConfig, new JulCartographLogger(getLogger()), this::buildHeartbeat);
         cartograph.start();
         cartograph.record(buildBootEvent());
     }
@@ -58,14 +54,27 @@ public class CartographBungeePlugin extends Plugin
         }
     }
 
-    public CartographConfig getCartographConfig()
+    private HeartbeatTelemetryEvent buildHeartbeat()
     {
-        return cartographConfig;
-    }
+        var runtime = Runtime.getRuntime();
+        var osBean = (com.sun.management.OperatingSystemMXBean)
+                ManagementFactory.getOperatingSystemMXBean();
 
-    public Cartograph getCartograph()
-    {
-        return cartograph;
+        return new HeartbeatTelemetryEvent(
+                System.currentTimeMillis(),
+                null,
+                null,
+                null,
+                getProxy().getOnlineCount(),
+                runtime.totalMemory() - runtime.freeMemory(),
+                runtime.maxMemory(),
+                osBean.getProcessCpuLoad(),
+                osBean.getCpuLoad(),
+                Thread.activeCount(),
+                null,
+                null,
+                null
+        );
     }
 
     private BootTelemetryEvent buildBootEvent()
@@ -81,11 +90,11 @@ public class CartographBungeePlugin extends Plugin
                            .toList();
 
         var backends = proxy.getServers().values().stream()
-                           .map(s -> {
-                               var addr = s.getSocketAddress();
-                               return new BackendInfo(s.getName(), addr.toString());
-                           })
-                           .toList();
+                            .map(s -> {
+                                var addr = s.getSocketAddress();
+                                return new BackendInfo(s.getName(), addr.toString());
+                            })
+                            .toList();
 
         return new BootTelemetryEvent(
                 System.currentTimeMillis(),
@@ -112,5 +121,15 @@ public class CartographBungeePlugin extends Plugin
                 null,
                 List.of()
         );
+    }
+
+    public CartographConfig getCartographConfig()
+    {
+        return cartographConfig;
+    }
+
+    public Cartograph getCartograph()
+    {
+        return cartograph;
     }
 }

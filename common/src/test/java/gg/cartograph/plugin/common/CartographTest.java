@@ -1,13 +1,15 @@
 package gg.cartograph.plugin.common;
 
 import gg.cartograph.plugin.common.config.CartographConfig;
+import gg.cartograph.plugin.common.events.HeartbeatTelemetryEvent;
 import gg.cartograph.plugin.common.events.TelemetryEvent;
 import gg.cartograph.plugin.common.logging.CartographLogger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.contains;
+import java.util.function.Supplier;
+
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class CartographTest
@@ -17,6 +19,8 @@ class CartographTest
 
     private CartographLogger logger;
 
+    private Supplier<HeartbeatTelemetryEvent> heartbeatSupplier;
+
     private Cartograph cartograph;
 
     @BeforeEach
@@ -25,8 +29,11 @@ class CartographTest
         config = CartographConfig.defaults();
         config.getBuffer().setSizeThreshold(3);
         config.getBuffer().setTimeThreshold(60);
-        logger     = mock(CartographLogger.class);
-        cartograph = new Cartograph(config, logger);
+        logger            = mock(CartographLogger.class);
+        heartbeatSupplier = () -> new HeartbeatTelemetryEvent(
+                System.currentTimeMillis(), null, null, null, 0, 0L, 0L, 0.0, 0.0, 0, null, null, null
+        );
+        cartograph        = new Cartograph(config, logger, heartbeatSupplier);
     }
 
     @Test
@@ -47,9 +54,26 @@ class CartographTest
         cartograph.record(event("heartbeat"));
         cartograph.record(event("heartbeat"));
 
-        // Buffer should have flushed (size threshold = 3), logging at debug level
         verify(logger).debug(contains("3"));
         cartograph.stop();
+    }
+
+    private TelemetryEvent event(String type)
+    {
+        return new TelemetryEvent()
+        {
+            @Override
+            public String type()
+            {
+                return type;
+            }
+
+            @Override
+            public Long timestamp()
+            {
+                return System.currentTimeMillis();
+            }
+        };
     }
 
     @Test
@@ -79,25 +103,17 @@ class CartographTest
         cartograph.record(event("tps_sample"));
         cartograph.stop();
 
-        // Final flush should have logged at debug level
         verify(logger).debug(contains("2"));
     }
 
-    private TelemetryEvent event(String type)
+    @Test
+    void heartbeatNotScheduledWhenDisabled()
     {
-        return new TelemetryEvent()
-        {
-            @Override
-            public String type()
-            {
-                return type;
-            }
+        config.getTelemetry().get("heartbeat").setEnabled(false);
+        cartograph = new Cartograph(config, logger, heartbeatSupplier);
+        cartograph.start();
 
-            @Override
-            public Long timestamp()
-            {
-                return System.currentTimeMillis();
-            }
-        };
+        verify(logger, never()).error(anyString(), any(Throwable.class));
+        cartograph.stop();
     }
 }

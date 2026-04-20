@@ -10,17 +10,13 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import gg.cartograph.plugin.common.Cartograph;
 import gg.cartograph.plugin.common.NodeType;
 import gg.cartograph.plugin.common.config.CartographConfig;
-import gg.cartograph.plugin.common.events.BackendInfo;
-import gg.cartograph.plugin.common.events.BootTelemetryEvent;
-import gg.cartograph.plugin.common.events.OsInfo;
-import gg.cartograph.plugin.common.events.PluginInfo;
-import gg.cartograph.plugin.common.events.ShutdownReason;
-import gg.cartograph.plugin.common.events.ShutdownTelemetryEvent;
+import gg.cartograph.plugin.common.events.*;
 import gg.cartograph.plugin.common.logging.Slf4jCartographLogger;
 import org.slf4j.Logger;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -70,9 +66,82 @@ public class CartographVelocityPlugin
             logger.error("Failed to load config", e);
             return;
         }
-        cartograph = new Cartograph(cartographConfig, new Slf4jCartographLogger(logger));
+        cartograph = new Cartograph(cartographConfig, new Slf4jCartographLogger(logger), this::buildHeartbeat);
         cartograph.start();
         cartograph.record(buildBootEvent());
+    }
+
+    private HeartbeatTelemetryEvent buildHeartbeat()
+    {
+        var runtime = Runtime.getRuntime();
+        var osBean = (com.sun.management.OperatingSystemMXBean)
+                ManagementFactory.getOperatingSystemMXBean();
+
+        return new HeartbeatTelemetryEvent(
+                System.currentTimeMillis(),
+                null,
+                null,
+                null,
+                server.getPlayerCount(),
+                runtime.totalMemory() - runtime.freeMemory(),
+                runtime.maxMemory(),
+                osBean.getProcessCpuLoad(),
+                osBean.getCpuLoad(),
+                Thread.activeCount(),
+                null,
+                null,
+                null
+        );
+    }
+
+    private BootTelemetryEvent buildBootEvent()
+    {
+        var version = server.getVersion();
+
+        var plugins = server.getPluginManager().getPlugins().stream()
+                            .map(PluginContainer::getDescription)
+                            .map(d -> new PluginInfo(
+                                    d.getId(),
+                                    d.getVersion().orElse("unknown"),
+                                    true
+                            ))
+                            .toList();
+
+        var backends = server.getAllServers().stream()
+                             .map(s -> {
+                                 var info = s.getServerInfo();
+                                 var addr = info.getAddress();
+                                 return new BackendInfo(info.getName(), addr.getHostString() + ":" + addr.getPort());
+                             })
+                             .toList();
+
+        return new BootTelemetryEvent(
+                System.currentTimeMillis(),
+                version.getName(),
+                version.getVersion(),
+                null,
+                System.getProperty("java.version"),
+                System.getProperty("java.vendor"),
+                new OsInfo(
+                        System.getProperty("os.name"),
+                        System.getProperty("os.version"),
+                        System.getProperty("os.arch")
+                ),
+                server.getPluginManager().getPlugin("cartograph")
+                      .flatMap(p -> p.getDescription().getVersion())
+                      .orElse("unknown"),
+                NodeType.PROXY,
+                server.getConfiguration().getShowMaxPlayers(),
+                null,
+                null,
+                server.getConfiguration().isOnlineMode(),
+                null,
+                null,
+                cartograph.shouldReportPlugins() ? plugins : null,
+                backends,
+                null,
+                List.of()
+        );
     }
 
     @Subscribe
@@ -96,55 +165,5 @@ public class CartographVelocityPlugin
     public Cartograph getCartograph()
     {
         return cartograph;
-    }
-
-    private BootTelemetryEvent buildBootEvent()
-    {
-        var version = server.getVersion();
-
-        var plugins = server.getPluginManager().getPlugins().stream()
-                            .map(PluginContainer::getDescription)
-                            .map(d -> new PluginInfo(
-                                    d.getId(),
-                                    d.getVersion().orElse("unknown"),
-                                    true
-                            ))
-                            .toList();
-
-        var backends = server.getAllServers().stream()
-                            .map(s -> {
-                                var info = s.getServerInfo();
-                                var addr = info.getAddress();
-                                return new BackendInfo(info.getName(), addr.getHostString() + ":" + addr.getPort());
-                            })
-                            .toList();
-
-        return new BootTelemetryEvent(
-                System.currentTimeMillis(),
-                version.getName(),
-                version.getVersion(),
-                null,
-                System.getProperty("java.version"),
-                System.getProperty("java.vendor"),
-                new OsInfo(
-                        System.getProperty("os.name"),
-                        System.getProperty("os.version"),
-                        System.getProperty("os.arch")
-                ),
-                server.getPluginManager().getPlugin("cartograph")
-                        .flatMap(p -> p.getDescription().getVersion())
-                        .orElse("unknown"),
-                NodeType.PROXY,
-                server.getConfiguration().getShowMaxPlayers(),
-                null,
-                null,
-                server.getConfiguration().isOnlineMode(),
-                null,
-                null,
-                cartograph.shouldReportPlugins() ? plugins : null,
-                backends,
-                null,
-                List.of()
-        );
     }
 }
