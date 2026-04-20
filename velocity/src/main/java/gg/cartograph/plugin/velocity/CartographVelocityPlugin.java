@@ -6,6 +6,8 @@ import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
+import gg.cartograph.plugin.common.Cartograph;
+import gg.cartograph.plugin.common.Slf4jCartographLogger;
 import gg.cartograph.plugin.common.config.CartographConfig;
 import org.slf4j.Logger;
 
@@ -18,8 +20,7 @@ import java.nio.file.Path;
  *
  * <p>Uses Velocity's dependency injection to receive the proxy server, logger, and
  * data directory. Configuration is loaded from {@code config.yml} in the plugin's
- * data directory when the proxy initialises. If the config cannot be read, the plugin
- * logs an error and does not start — no telemetry will be collected or transmitted.</p>
+ * data directory when the proxy initialises.</p>
  *
  * @see VelocityConfigLoader
  */
@@ -35,43 +36,50 @@ public class CartographVelocityPlugin
 
     private final ProxyServer server;
 
-    private final Logger      logger;
+    private final Logger logger;
 
-    private final Path        dataDirectory;
+    private final Path dataDirectory;
 
-    private CartographConfig  cartographConfig;
+    private CartographConfig cartographConfig;
+
+    private Cartograph cartograph;
 
     @Inject
     public CartographVelocityPlugin(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory)
     {
-        this.server = server;
-        this.logger = logger;
+        this.server        = server;
+        this.logger        = logger;
         this.dataDirectory = dataDirectory;
     }
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event)
     {
-        try
-        {
+        try {
             cartographConfig = VelocityConfigLoader.load(dataDirectory);
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             logger.error("Failed to load config", e);
             return;
         }
-        logger.info("Cartograph enabled (Velocity)");
+        cartograph = new Cartograph(cartographConfig, new Slf4jCartographLogger(logger));
+        cartograph.start();
     }
 
     @Subscribe
     public void onProxyShutdown(ProxyShutdownEvent event)
     {
-        logger.info("Cartograph disabled (Velocity)");
+        if (cartograph != null) {
+            cartograph.stop();
+        }
     }
 
     public CartographConfig getCartographConfig()
     {
         return cartographConfig;
+    }
+
+    public Cartograph getCartograph()
+    {
+        return cartograph;
     }
 }

@@ -12,7 +12,6 @@ package gg.cartograph.plugin.common;
  */
 public interface CartographPlugin
 {
-
     /**
      * Called when the plugin is enabled by the server.
      * Implementations should load configuration and start any telemetry collectors here.

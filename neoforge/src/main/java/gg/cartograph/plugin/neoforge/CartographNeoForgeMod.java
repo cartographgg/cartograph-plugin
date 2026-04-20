@@ -1,5 +1,7 @@
 package gg.cartograph.plugin.neoforge;
 
+import gg.cartograph.plugin.common.Cartograph;
+import gg.cartograph.plugin.common.Log4jCartographLogger;
 import gg.cartograph.plugin.common.config.CartographConfig;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -17,11 +19,7 @@ import org.apache.logging.log4j.Logger;
  *
  * <p>Registers the config spec with NeoForge's configuration system at construction
  * time, then loads the resolved values into a {@link CartographConfig} when the server
- * starts. The config file is managed by NeoForge and stored in the server's config
- * directory as a TOML file.</p>
- *
- * <p>No telemetry or network activity occurs until the server start event fires and
- * configuration has been loaded successfully.</p>
+ * starts and constructs the {@link Cartograph} runtime.</p>
  *
  * @see NeoForgeConfigLoader
  */
@@ -33,6 +31,8 @@ public class CartographNeoForgeMod
 
     private CartographConfig cartographConfig;
 
+    private Cartograph cartograph;
+
     public CartographNeoForgeMod(IEventBus modBus, ModContainer modContainer)
     {
         NeoForge.EVENT_BUS.register(this);
@@ -43,17 +43,25 @@ public class CartographNeoForgeMod
     public void onServerStarting(ServerStartingEvent event)
     {
         cartographConfig = NeoForgeConfigLoader.load();
-        LOGGER.info("Cartograph enabled (NeoForge)");
+        cartograph       = new Cartograph(cartographConfig, new Log4jCartographLogger(LOGGER));
+        cartograph.start();
     }
 
     @SubscribeEvent
     public void onServerStopping(ServerStoppingEvent event)
     {
-        LOGGER.info("Cartograph disabled (NeoForge)");
+        if (cartograph != null) {
+            cartograph.stop();
+        }
     }
 
     public CartographConfig getCartographConfig()
     {
         return cartographConfig;
+    }
+
+    public Cartograph getCartograph()
+    {
+        return cartograph;
     }
 }

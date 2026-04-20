@@ -12,6 +12,9 @@ package gg.cartograph.plugin.common;
  */
 public interface CartographLogger
 {
+
+    void debug(String message);
+
     void info(String message);
 
     void warn(String message);

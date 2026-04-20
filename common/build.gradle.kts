@@ -13,6 +13,9 @@ repositories {
 }
 
 dependencies {
+    api(libs.jackson.databind)
+    compileOnly(libs.slf4j.api)
+    compileOnly(libs.log4j.api)
     testImplementation(libs.junit.api)
     testRuntimeOnly(libs.junit.engine)
     testImplementation(libs.mockito.core)

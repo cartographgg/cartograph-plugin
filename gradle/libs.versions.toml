@@ -18,6 +18,13 @@ bungeecord-v261 = "26.1-R0.1-SNAPSHOT"
 neoforge-v121 = "21.1.77"
 neoforge-v261 = "26.1.2.20-beta"
 
+# JSON
+jackson = "2.18.2"
+
+# Logging
+slf4j = "2.0.16"
+log4j = "2.24.3"
+
 # Testing
 junit = "5.11.4"
 mockito = "5.15.2"
@@ -39,6 +46,9 @@ mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-junit = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
 mockbukkit-v121 = { module = "org.mockbukkit.mockbukkit:mockbukkit-v1.21", version.ref = "mockbukkit-v121" }
 snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
 
 [plugins]
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
