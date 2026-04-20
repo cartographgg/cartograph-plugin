@@ -7,8 +7,8 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 import gg.cartograph.plugin.common.Cartograph;
-import gg.cartograph.plugin.common.Slf4jCartographLogger;
 import gg.cartograph.plugin.common.config.CartographConfig;
+import gg.cartograph.plugin.common.logging.Slf4jCartographLogger;
 import org.slf4j.Logger;
 
 import javax.inject.Inject;

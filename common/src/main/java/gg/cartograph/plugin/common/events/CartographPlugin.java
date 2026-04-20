@@ -1,4 +1,4 @@
-package gg.cartograph.plugin.common;
+package gg.cartograph.plugin.common.events;
 
 /**
  * Platform-agnostic lifecycle contract for the Cartograph plugin.

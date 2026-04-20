@@ -1,4 +1,6 @@
-package gg.cartograph.plugin.common;
+package gg.cartograph.plugin.common.events;
+
+import com.fasterxml.jackson.annotation.JsonGetter;
 
 /**
  * Marker interface for telemetry event DTOs.
@@ -13,5 +15,14 @@ public interface TelemetryEvent
      *
      * @return the event type string, used as the JSON type field
      */
+    @JsonGetter("t")
     String type();
+
+    /**
+     * Returns the timestamp of the event.
+     *
+     * @return the event timestamp, in milliseconds since the Unix epoch
+     */
+    @JsonGetter("ts")
+    Long timestamp();
 }

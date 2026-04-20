@@ -1,4 +1,4 @@
-package gg.cartograph.plugin.common;
+package gg.cartograph.plugin.common.logging;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;

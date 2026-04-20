@@ -1,4 +1,4 @@
-package gg.cartograph.plugin.common;
+package gg.cartograph.plugin.common.logging;
 
 /**
  * Platform-agnostic logging abstraction for Cartograph common components.

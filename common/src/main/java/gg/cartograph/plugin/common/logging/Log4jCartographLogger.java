@@ -1,18 +1,18 @@
-package gg.cartograph.plugin.common;
+package gg.cartograph.plugin.common.logging;
 
-import org.slf4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 /**
- * {@link CartographLogger} implementation backed by SLF4J.
+ * {@link CartographLogger} implementation backed by Log4j 2.
  *
- * <p>Used by the Velocity platform.</p>
+ * <p>Used by the NeoForge platform.</p>
  */
-public class Slf4jCartographLogger implements CartographLogger
+public class Log4jCartographLogger implements CartographLogger
 {
 
     private final Logger logger;
 
-    public Slf4jCartographLogger(Logger logger)
+    public Log4jCartographLogger(Logger logger)
     {
         this.logger = logger;
     }

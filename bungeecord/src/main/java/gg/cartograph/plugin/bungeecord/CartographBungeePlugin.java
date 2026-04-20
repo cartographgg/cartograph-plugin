@@ -1,8 +1,8 @@
 package gg.cartograph.plugin.bungeecord;
 
 import gg.cartograph.plugin.common.Cartograph;
-import gg.cartograph.plugin.common.JulCartographLogger;
 import gg.cartograph.plugin.common.config.CartographConfig;
+import gg.cartograph.plugin.common.logging.JulCartographLogger;
 import net.md_5.bungee.api.plugin.Plugin;
 
 import java.io.IOException;

@@ -1,9 +1,9 @@
 package gg.cartograph.plugin.bukkit;
 
 import gg.cartograph.plugin.common.Cartograph;
-import gg.cartograph.plugin.common.CartographPlugin;
-import gg.cartograph.plugin.common.JulCartographLogger;
 import gg.cartograph.plugin.common.config.CartographConfig;
+import gg.cartograph.plugin.common.events.CartographPlugin;
+import gg.cartograph.plugin.common.logging.JulCartographLogger;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**

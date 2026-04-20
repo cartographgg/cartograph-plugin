@@ -1,8 +1,8 @@
 package gg.cartograph.plugin.neoforge;
 
 import gg.cartograph.plugin.common.Cartograph;
-import gg.cartograph.plugin.common.Log4jCartographLogger;
 import gg.cartograph.plugin.common.config.CartographConfig;
+import gg.cartograph.plugin.common.logging.Log4jCartographLogger;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;

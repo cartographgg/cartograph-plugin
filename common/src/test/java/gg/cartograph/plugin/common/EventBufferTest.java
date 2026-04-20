@@ -1,6 +1,9 @@
 package gg.cartograph.plugin.common;
 
 import gg.cartograph.plugin.common.config.BufferConfig;
+import gg.cartograph.plugin.common.events.EventBuffer;
+import gg.cartograph.plugin.common.events.TelemetryEvent;
+import gg.cartograph.plugin.common.logging.CartographLogger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
