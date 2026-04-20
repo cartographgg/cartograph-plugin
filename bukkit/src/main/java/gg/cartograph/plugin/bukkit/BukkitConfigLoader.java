@@ -21,6 +21,7 @@ public class BukkitConfigLoader
      * then parses the YAML into a {@link CartographConfig}.</p>
      *
      * @param plugin the Bukkit plugin instance to load configuration from
+     *
      * @return a fully populated configuration, with defaults for any missing values
      */
     public static CartographConfig load(CartographBukkitPlugin plugin)
@@ -37,6 +38,7 @@ public class BukkitConfigLoader
      * subsection under {@code telemetry} will be loaded, not just the built-in types.</p>
      *
      * @param section the root configuration section to read from
+     *
      * @return a fully populated configuration
      */
     static CartographConfig fromSection(ConfigurationSection section)
@@ -47,17 +49,14 @@ public class BukkitConfigLoader
         config.setApiEndpoint(section.getString("api-endpoint", config.getApiEndpoint()));
 
         var flagsSection = section.getConfigurationSection("flags");
-        if (flagsSection != null)
-        {
-            for (String key : flagsSection.getKeys(false))
-            {
+        if (flagsSection != null) {
+            for (String key : flagsSection.getKeys(false)) {
                 config.getFlags().put(key, flagsSection.getBoolean(key, config.getFlags().getOrDefault(key, false)));
             }
         }
 
         var bufferSection = section.getConfigurationSection("buffer");
-        if (bufferSection != null)
-        {
+        if (bufferSection != null) {
             var buffer = config.getBuffer();
             buffer.setSizeThreshold(bufferSection.getInt("size-threshold", buffer.getSizeThreshold()));
             buffer.setTimeThreshold(bufferSection.getInt("time-threshold", buffer.getTimeThreshold()));
@@ -65,13 +64,10 @@ public class BukkitConfigLoader
         }
 
         var telemetrySection = section.getConfigurationSection("telemetry");
-        if (telemetrySection != null)
-        {
-            for (String key : telemetrySection.getKeys(false))
-            {
+        if (telemetrySection != null) {
+            for (String key : telemetrySection.getKeys(false)) {
                 var typeSection = telemetrySection.getConfigurationSection(key);
-                if (typeSection == null)
-                {
+                if (typeSection == null) {
                     continue;
                 }
 

@@ -22,24 +22,31 @@ public class NeoForgeConfigLoader
     /** The built config spec, registered with NeoForge in {@link CartographNeoForgeMod}. */
     public static final ModConfigSpec SPEC;
 
-    private static final ModConfigSpec.ConfigValue<String>  API_KEY;
-    private static final ModConfigSpec.ConfigValue<String>  API_ENDPOINT;
+    private static final ModConfigSpec.ConfigValue<String> API_KEY;
 
-    private static final ModConfigSpec.BooleanValue         FLAG_REPORT_PLUGINS;
+    private static final ModConfigSpec.ConfigValue<String> API_ENDPOINT;
 
-    private static final ModConfigSpec.IntValue             BUFFER_SIZE_THRESHOLD;
-    private static final ModConfigSpec.IntValue             BUFFER_TIME_THRESHOLD;
-    private static final ModConfigSpec.IntValue             BUFFER_MAX_RETRIES;
+    private static final ModConfigSpec.BooleanValue FLAG_REPORT_PLUGINS;
 
-    private static final ModConfigSpec.BooleanValue         HEARTBEAT_ENABLED;
-    private static final ModConfigSpec.IntValue             HEARTBEAT_INTERVAL;
-    private static final ModConfigSpec.BooleanValue         TPS_SAMPLE_ENABLED;
-    private static final ModConfigSpec.IntValue             TPS_SAMPLE_INTERVAL;
-    private static final ModConfigSpec.BooleanValue         LATENCY_ENABLED;
-    private static final ModConfigSpec.IntValue             LATENCY_INTERVAL;
+    private static final ModConfigSpec.IntValue BUFFER_SIZE_THRESHOLD;
 
-    static
-    {
+    private static final ModConfigSpec.IntValue BUFFER_TIME_THRESHOLD;
+
+    private static final ModConfigSpec.IntValue BUFFER_MAX_RETRIES;
+
+    private static final ModConfigSpec.BooleanValue HEARTBEAT_ENABLED;
+
+    private static final ModConfigSpec.IntValue HEARTBEAT_INTERVAL;
+
+    private static final ModConfigSpec.BooleanValue TPS_SAMPLE_ENABLED;
+
+    private static final ModConfigSpec.IntValue TPS_SAMPLE_INTERVAL;
+
+    private static final ModConfigSpec.BooleanValue LATENCY_ENABLED;
+
+    private static final ModConfigSpec.IntValue LATENCY_INTERVAL;
+
+    static {
         var builder = new ModConfigSpec.Builder();
 
         API_KEY = builder
@@ -77,21 +84,21 @@ public class NeoForgeConfigLoader
         builder.comment("Telemetry type configuration").push("telemetry");
 
         builder.push("heartbeat");
-        HEARTBEAT_ENABLED = builder.define("enabled", true);
+        HEARTBEAT_ENABLED  = builder.define("enabled", true);
         HEARTBEAT_INTERVAL = builder
                 .comment("Recording interval in seconds")
                 .defineInRange("interval", 60, 1, Integer.MAX_VALUE);
         builder.pop();
 
         builder.push("tps_sample");
-        TPS_SAMPLE_ENABLED = builder.define("enabled", true);
+        TPS_SAMPLE_ENABLED  = builder.define("enabled", true);
         TPS_SAMPLE_INTERVAL = builder
                 .comment("Recording interval in seconds")
                 .defineInRange("interval", 20, 1, Integer.MAX_VALUE);
         builder.pop();
 
         builder.push("latency");
-        LATENCY_ENABLED = builder.define("enabled", true);
+        LATENCY_ENABLED  = builder.define("enabled", true);
         LATENCY_INTERVAL = builder
                 .comment("Recording interval in seconds")
                 .defineInRange("interval", 30, 1, Integer.MAX_VALUE);

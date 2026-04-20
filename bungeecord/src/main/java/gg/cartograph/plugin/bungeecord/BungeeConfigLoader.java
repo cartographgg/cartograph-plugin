@@ -28,23 +28,22 @@ public class BungeeConfigLoader
      * The file is then parsed via BungeeCord's YAML configuration provider.</p>
      *
      * @param plugin the BungeeCord plugin instance to load configuration from
+     *
      * @return a fully populated configuration, with defaults for any missing values
+     *
      * @throws IOException if the config file cannot be read or the default cannot be copied
      */
     public static CartographConfig load(CartographBungeePlugin plugin) throws IOException
     {
         var dataFolder = plugin.getDataFolder();
-        if (!dataFolder.exists())
-        {
+        if (!dataFolder.exists()) {
             dataFolder.mkdirs();
         }
 
         var configFile = new File(dataFolder, "config.yml");
-        if (!configFile.exists())
-        {
+        if (!configFile.exists()) {
             // Copy the default config bundled in the JAR to the plugin's data folder
-            try (var in = plugin.getResourceAsStream("config.yml"))
-            {
+            try (var in = plugin.getResourceAsStream("config.yml")) {
                 Files.copy(in, configFile.toPath());
             }
         }
@@ -61,6 +60,7 @@ public class BungeeConfigLoader
      * subsection under {@code telemetry} will be loaded, not just the built-in types.</p>
      *
      * @param section the root configuration to read from
+     *
      * @return a fully populated configuration
      */
     static CartographConfig fromConfiguration(Configuration section)
@@ -71,17 +71,14 @@ public class BungeeConfigLoader
         config.setApiEndpoint(section.getString("api-endpoint", config.getApiEndpoint()));
 
         var flagsSection = section.getSection("flags");
-        if (flagsSection != null)
-        {
-            for (String key : flagsSection.getKeys())
-            {
+        if (flagsSection != null) {
+            for (String key : flagsSection.getKeys()) {
                 config.getFlags().put(key, flagsSection.getBoolean(key, config.getFlags().getOrDefault(key, false)));
             }
         }
 
         var bufferSection = section.getSection("buffer");
-        if (bufferSection != null)
-        {
+        if (bufferSection != null) {
             var buffer = config.getBuffer();
             buffer.setSizeThreshold(bufferSection.getInt("size-threshold", buffer.getSizeThreshold()));
             buffer.setTimeThreshold(bufferSection.getInt("time-threshold", buffer.getTimeThreshold()));
@@ -89,13 +86,10 @@ public class BungeeConfigLoader
         }
 
         var telemetrySection = section.getSection("telemetry");
-        if (telemetrySection != null)
-        {
-            for (String key : telemetrySection.getKeys())
-            {
+        if (telemetrySection != null) {
+            for (String key : telemetrySection.getKeys()) {
                 var typeSection = telemetrySection.getSection(key);
-                if (typeSection == null)
-                {
+                if (typeSection == null) {
                     continue;
                 }
 

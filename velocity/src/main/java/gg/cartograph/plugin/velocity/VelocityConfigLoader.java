@@ -32,7 +32,9 @@ public class VelocityConfigLoader
      * parses as empty.</p>
      *
      * @param dataDirectory the plugin's data directory, provided by Velocity
+     *
      * @return a fully populated configuration, with defaults for any missing values
+     *
      * @throws IOException if the config file cannot be read or the default cannot be copied
      */
     @SuppressWarnings("unchecked")
@@ -42,11 +44,9 @@ public class VelocityConfigLoader
 
         var configPath = dataDirectory.resolve("config.yml");
 
-        if (!Files.exists(configPath))
-        {
+        if (!Files.exists(configPath)) {
             // Copy the default config bundled in the JAR to the plugin's data directory
-            try (var in = VelocityConfigLoader.class.getResourceAsStream("/config.yml"))
-            {
+            try (var in = VelocityConfigLoader.class.getResourceAsStream("/config.yml")) {
                 Files.copy(in, configPath);
             }
         }
@@ -55,72 +55,57 @@ public class VelocityConfigLoader
 
         // SnakeYAML returns null for empty files
         Map<String, Object> data;
-        try (var reader = Files.newBufferedReader(configPath))
-        {
+        try (var reader = Files.newBufferedReader(configPath)) {
             data = new Yaml().load(reader);
         }
 
-        if (data == null)
-        {
+        if (data == null) {
             return config;
         }
 
-        if (data.containsKey("api-key"))
-        {
+        if (data.containsKey("api-key")) {
             config.setApiKey((String) data.get("api-key"));
         }
 
-        if (data.containsKey("api-endpoint"))
-        {
+        if (data.containsKey("api-endpoint")) {
             config.setApiEndpoint((String) data.get("api-endpoint"));
         }
 
         var flagsMap = (Map<String, Object>) data.get("flags");
-        if (flagsMap != null)
-        {
-            for (var entry : flagsMap.entrySet())
-            {
+        if (flagsMap != null) {
+            for (var entry : flagsMap.entrySet()) {
                 config.getFlags().put(entry.getKey(), (Boolean) entry.getValue());
             }
         }
 
         var bufferMap = (Map<String, Object>) data.get("buffer");
-        if (bufferMap != null)
-        {
+        if (bufferMap != null) {
             var buffer = config.getBuffer();
-            if (bufferMap.containsKey("size-threshold"))
-            {
+            if (bufferMap.containsKey("size-threshold")) {
                 buffer.setSizeThreshold((Integer) bufferMap.get("size-threshold"));
             }
-            if (bufferMap.containsKey("time-threshold"))
-            {
+            if (bufferMap.containsKey("time-threshold")) {
                 buffer.setTimeThreshold((Integer) bufferMap.get("time-threshold"));
             }
-            if (bufferMap.containsKey("max-retries"))
-            {
+            if (bufferMap.containsKey("max-retries")) {
                 buffer.setMaxRetries((Integer) bufferMap.get("max-retries"));
             }
         }
 
         var telemetryMap = (Map<String, Object>) data.get("telemetry");
-        if (telemetryMap != null)
-        {
-            for (var entry : telemetryMap.entrySet())
-            {
+        if (telemetryMap != null) {
+            for (var entry : telemetryMap.entrySet()) {
                 var typeData = (Map<String, Object>) entry.getValue();
-                if (typeData == null)
-                {
+                if (typeData == null) {
                     continue;
                 }
 
                 var telemetry = config.getTelemetry().getOrDefault(entry.getKey(), new TelemetryConfig());
 
-                if (typeData.containsKey("enabled"))
-                {
+                if (typeData.containsKey("enabled")) {
                     telemetry.setEnabled((Boolean) typeData.get("enabled"));
                 }
-                if (typeData.containsKey("interval"))
-                {
+                if (typeData.containsKey("interval")) {
                     telemetry.setInterval((Integer) typeData.get("interval"));
                 }
 
