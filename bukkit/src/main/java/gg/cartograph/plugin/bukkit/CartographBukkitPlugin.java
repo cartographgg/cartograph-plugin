@@ -1,10 +1,14 @@
 package gg.cartograph.plugin.bukkit;
 
 import gg.cartograph.plugin.common.Cartograph;
+import gg.cartograph.plugin.common.SessionTracker;
 import gg.cartograph.plugin.common.NodeType;
 import gg.cartograph.plugin.common.TickSampler;
 import gg.cartograph.plugin.common.config.CartographConfig;
 import gg.cartograph.plugin.common.events.*;
+import gg.cartograph.plugin.common.events.telemetry.BootTelemetryEvent;
+import gg.cartograph.plugin.common.events.telemetry.HeartbeatTelemetryEvent;
+import gg.cartograph.plugin.common.events.telemetry.ShutdownTelemetryEvent;
 import gg.cartograph.plugin.common.logging.JulCartographLogger;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -58,7 +62,9 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
         cartograph.record(buildBootEvent());
         startTickSampling();
         if (!cartograph.isProxyBackend()) {
-            getServer().getPluginManager().registerEvents(new PlayerJoinListener(cartograph), this);
+            var sessionTracker = new SessionTracker();
+            getServer().getPluginManager().registerEvents(new PlayerJoinListener(cartograph, sessionTracker), this);
+            getServer().getPluginManager().registerEvents(new PlayerLeaveListener(cartograph, sessionTracker), this);
         }
     }
 

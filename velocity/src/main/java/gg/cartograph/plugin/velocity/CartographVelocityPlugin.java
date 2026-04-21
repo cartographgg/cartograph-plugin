@@ -8,9 +8,16 @@ import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 import gg.cartograph.plugin.common.Cartograph;
+import gg.cartograph.plugin.common.SessionTracker;
 import gg.cartograph.plugin.common.NodeType;
 import gg.cartograph.plugin.common.config.CartographConfig;
-import gg.cartograph.plugin.common.events.*;
+import gg.cartograph.plugin.common.events.BackendInfo;
+import gg.cartograph.plugin.common.events.OsInfo;
+import gg.cartograph.plugin.common.events.PluginInfo;
+import gg.cartograph.plugin.common.events.ShutdownReason;
+import gg.cartograph.plugin.common.events.telemetry.BootTelemetryEvent;
+import gg.cartograph.plugin.common.events.telemetry.HeartbeatTelemetryEvent;
+import gg.cartograph.plugin.common.events.telemetry.ShutdownTelemetryEvent;
 import gg.cartograph.plugin.common.logging.Slf4jCartographLogger;
 import org.slf4j.Logger;
 
@@ -93,7 +100,9 @@ public class CartographVelocityPlugin
         cartograph = new Cartograph(cartographConfig, new Slf4jCartographLogger(logger), this::buildHeartbeat);
         cartograph.start();
         cartograph.record(buildBootEvent());
-        server.getEventManager().register(this, new PlayerJoinListener(cartograph));
+        var sessionTracker = new SessionTracker();
+        server.getEventManager().register(this, new PlayerJoinListener(cartograph, sessionTracker));
+        server.getEventManager().register(this, new PlayerLeaveListener(cartograph, sessionTracker));
     }
 
     private HeartbeatTelemetryEvent buildHeartbeat()

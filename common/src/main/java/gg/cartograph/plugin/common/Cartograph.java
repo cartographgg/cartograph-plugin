@@ -2,8 +2,8 @@ package gg.cartograph.plugin.common;
 
 import gg.cartograph.plugin.common.config.CartographConfig;
 import gg.cartograph.plugin.common.events.EventBuffer;
-import gg.cartograph.plugin.common.events.HeartbeatTelemetryEvent;
-import gg.cartograph.plugin.common.events.TelemetryEvent;
+import gg.cartograph.plugin.common.events.telemetry.HeartbeatTelemetryEvent;
+import gg.cartograph.plugin.common.events.telemetry.TelemetryEvent;
 import gg.cartograph.plugin.common.logging.CartographLogger;
 
 import java.util.List;

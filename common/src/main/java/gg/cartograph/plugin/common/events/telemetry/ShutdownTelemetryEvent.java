@@ -1,7 +1,9 @@
-package gg.cartograph.plugin.common.events;
+package gg.cartograph.plugin.common.events.telemetry;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import gg.cartograph.plugin.common.events.EventTypes;
+import gg.cartograph.plugin.common.events.ShutdownReason;
 
 /**
  * Telemetry event fired once when the Cartograph plugin disables, typically

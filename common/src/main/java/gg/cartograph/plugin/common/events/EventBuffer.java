@@ -1,6 +1,7 @@
 package gg.cartograph.plugin.common.events;
 
 import gg.cartograph.plugin.common.config.BufferConfig;
+import gg.cartograph.plugin.common.events.telemetry.TelemetryEvent;
 import gg.cartograph.plugin.common.logging.CartographLogger;
 
 import java.util.ArrayList;

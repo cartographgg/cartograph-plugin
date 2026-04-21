@@ -1,8 +1,9 @@
-package gg.cartograph.plugin.common.events;
+package gg.cartograph.plugin.common.events.telemetry;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import gg.cartograph.plugin.common.NodeType;
+import gg.cartograph.plugin.common.events.*;
 
 import java.util.List;
 

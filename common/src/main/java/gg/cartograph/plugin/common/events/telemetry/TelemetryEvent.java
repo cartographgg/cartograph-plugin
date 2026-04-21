@@ -1,4 +1,4 @@
-package gg.cartograph.plugin.common.events;
+package gg.cartograph.plugin.common.events.telemetry;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 

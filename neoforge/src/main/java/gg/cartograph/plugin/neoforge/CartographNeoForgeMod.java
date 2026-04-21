@@ -1,10 +1,14 @@
 package gg.cartograph.plugin.neoforge;
 
 import gg.cartograph.plugin.common.Cartograph;
+import gg.cartograph.plugin.common.SessionTracker;
 import gg.cartograph.plugin.common.NodeType;
 import gg.cartograph.plugin.common.TickSampler;
 import gg.cartograph.plugin.common.config.CartographConfig;
 import gg.cartograph.plugin.common.events.*;
+import gg.cartograph.plugin.common.events.telemetry.BootTelemetryEvent;
+import gg.cartograph.plugin.common.events.telemetry.HeartbeatTelemetryEvent;
+import gg.cartograph.plugin.common.events.telemetry.ShutdownTelemetryEvent;
 import gg.cartograph.plugin.common.logging.Log4jCartographLogger;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -66,7 +70,9 @@ public class CartographNeoForgeMod
         cartograph      = new Cartograph(cartographConfig, new Log4jCartographLogger(LOGGER), this::buildHeartbeat);
         cartograph.start();
         cartograph.record(buildBootEvent(event));
-        NeoForge.EVENT_BUS.register(new PlayerJoinListener(cartograph));
+        var sessionTracker = new SessionTracker();
+        NeoForge.EVENT_BUS.register(new PlayerJoinListener(cartograph, sessionTracker));
+        NeoForge.EVENT_BUS.register(new PlayerLeaveListener(cartograph, sessionTracker));
     }
 
     private HeartbeatTelemetryEvent buildHeartbeat()

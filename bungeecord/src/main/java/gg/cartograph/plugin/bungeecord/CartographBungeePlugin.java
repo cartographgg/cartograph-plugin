@@ -1,9 +1,16 @@
 package gg.cartograph.plugin.bungeecord;
 
 import gg.cartograph.plugin.common.Cartograph;
+import gg.cartograph.plugin.common.SessionTracker;
 import gg.cartograph.plugin.common.NodeType;
 import gg.cartograph.plugin.common.config.CartographConfig;
-import gg.cartograph.plugin.common.events.*;
+import gg.cartograph.plugin.common.events.BackendInfo;
+import gg.cartograph.plugin.common.events.OsInfo;
+import gg.cartograph.plugin.common.events.PluginInfo;
+import gg.cartograph.plugin.common.events.ShutdownReason;
+import gg.cartograph.plugin.common.events.telemetry.BootTelemetryEvent;
+import gg.cartograph.plugin.common.events.telemetry.HeartbeatTelemetryEvent;
+import gg.cartograph.plugin.common.events.telemetry.ShutdownTelemetryEvent;
 import gg.cartograph.plugin.common.logging.JulCartographLogger;
 import net.md_5.bungee.api.plugin.Plugin;
 
@@ -57,7 +64,9 @@ public class CartographBungeePlugin extends Plugin
         cartograph = new Cartograph(cartographConfig, new JulCartographLogger(getLogger()), this::buildHeartbeat);
         cartograph.start();
         cartograph.record(buildBootEvent());
-        getProxy().getPluginManager().registerListener(this, new PlayerJoinListener(cartograph));
+        var sessionTracker = new SessionTracker();
+        getProxy().getPluginManager().registerListener(this, new PlayerJoinListener(cartograph, sessionTracker));
+        getProxy().getPluginManager().registerListener(this, new PlayerLeaveListener(cartograph, sessionTracker));
     }
 
     @Override
