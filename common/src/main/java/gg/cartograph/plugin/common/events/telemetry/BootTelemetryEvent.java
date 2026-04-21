@@ -37,7 +37,9 @@ public record BootTelemetryEvent(
         @JsonGetter("pl") List<PluginInfo> plugins,
         @JsonGetter("bk") List<BackendInfo> backends,
         @JsonGetter("w") List<WorldInfo> worlds,
-        @JsonGetter("ft") List<String> features
+        @JsonGetter("ft") List<String> features,
+        @JsonGetter("rp") List<ResourcePackInfo> resourcePacks,
+        @JsonGetter("md") List<ModInfo> mods
 ) implements TelemetryEvent
 {
     @Override

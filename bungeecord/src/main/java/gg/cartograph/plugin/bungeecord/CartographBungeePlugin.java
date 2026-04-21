@@ -147,7 +147,9 @@ public class CartographBungeePlugin extends Plugin
                 cartograph.shouldReportPlugins() ? plugins : null,
                 backends,
                 null,
-                List.of()
+                List.of(),
+                null,
+                null
         );
     }
 

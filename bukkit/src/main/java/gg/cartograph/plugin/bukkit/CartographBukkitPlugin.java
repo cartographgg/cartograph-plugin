@@ -122,6 +122,18 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
                            .map(w -> new WorldInfo(w.getName(), w.getEnvironment().name().toLowerCase()))
                            .toList();
 
+        var resourcePacks = new java.util.ArrayList<ResourcePackInfo>();
+        @SuppressWarnings("deprecation") var rpUrl = server.getResourcePack();
+        if (rpUrl != null && !rpUrl.isEmpty()) {
+            @SuppressWarnings("deprecation") var rpHash = server.getResourcePackHash();
+            resourcePacks.add(new ResourcePackInfo(
+                    rpUrl,
+                    rpHash.isEmpty() ? null : rpHash,
+                    server.isResourcePackRequired(),
+                    null
+            ));
+        }
+
         return new BootTelemetryEvent(
                 System.currentTimeMillis(),
                 server.getName(),
@@ -145,7 +157,9 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
                 cartograph.shouldReportPlugins() ? plugins : null,
                 null,
                 worlds,
-                List.of()
+                List.of(),
+                resourcePacks.isEmpty() ? null : resourcePacks,
+                null
         );
     }
 

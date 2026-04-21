@@ -122,7 +122,7 @@ public class CartographNeoForgeMod
         var server = event.getServer();
 
         var mods = ModList.get().getMods().stream()
-                          .map(mod -> new PluginInfo(mod.getModId(), mod.getVersion().toString(), true))
+                          .map(mod -> new ModInfo(mod.getModId(), mod.getDisplayName(), mod.getVersion().toString()))
                           .toList();
 
         var worlds    = server.getAllLevels().spliterator();
@@ -157,10 +157,12 @@ public class CartographNeoForgeMod
                 server.usesAuthentication(),
                 null,
                 server.getMotd(),
-                cartograph.shouldReportPlugins() ? mods : null,
+                null,
                 null,
                 worldList,
-                List.of()
+                List.of(),
+                null,
+                cartograph.shouldReportPlugins() ? mods : null
         );
     }
 
