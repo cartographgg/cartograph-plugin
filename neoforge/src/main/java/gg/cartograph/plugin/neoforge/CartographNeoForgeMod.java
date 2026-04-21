@@ -54,11 +54,19 @@ public class CartographNeoForgeMod
     public void onServerStarting(ServerStartingEvent event)
     {
         cartographConfig = NeoForgeConfigLoader.load();
-        tickSampler      = new TickSampler();
-        minecraftServer  = event.getServer();
-        cartograph       = new Cartograph(cartographConfig, new Log4jCartographLogger(LOGGER), this::buildHeartbeat);
+        if (cartographConfig.getIpHashSalt().isEmpty()) {
+            var bytes = new byte[32];
+            new java.security.SecureRandom().nextBytes(bytes);
+            var salt = java.util.HexFormat.of().formatHex(bytes);
+            cartographConfig.setIpHashSalt(salt);
+            NeoForgeConfigLoader.setIpHashSalt(salt);
+        }
+        tickSampler     = new TickSampler();
+        minecraftServer = event.getServer();
+        cartograph      = new Cartograph(cartographConfig, new Log4jCartographLogger(LOGGER), this::buildHeartbeat);
         cartograph.start();
         cartograph.record(buildBootEvent(event));
+        NeoForge.EVENT_BUS.register(new PlayerJoinListener(cartograph));
     }
 
     private HeartbeatTelemetryEvent buildHeartbeat()

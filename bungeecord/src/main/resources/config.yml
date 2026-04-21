@@ -1,5 +1,6 @@
 api-key: ""
 api-endpoint: "https://api.cartograph.gg"
+ip-hash-salt: ""
 
 flags:
   report-plugins: false

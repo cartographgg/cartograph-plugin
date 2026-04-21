@@ -36,9 +36,28 @@ public class CartographBungeePlugin extends Plugin
             getLogger().severe("Failed to load config: " + e.getMessage());
             return;
         }
+        if (cartographConfig.getIpHashSalt().isEmpty()) {
+            var bytes = new byte[32];
+            new java.security.SecureRandom().nextBytes(bytes);
+            var salt = java.util.HexFormat.of().formatHex(bytes);
+            cartographConfig.setIpHashSalt(salt);
+            try {
+                var configFile = new java.io.File(getDataFolder(), "config.yml");
+                var yaml = net.md_5.bungee.config.ConfigurationProvider.getProvider(
+                        net.md_5.bungee.config.YamlConfiguration.class
+                ).load(configFile);
+                yaml.set("ip-hash-salt", salt);
+                net.md_5.bungee.config.ConfigurationProvider.getProvider(
+                        net.md_5.bungee.config.YamlConfiguration.class
+                ).save(yaml, configFile);
+            } catch (IOException e) {
+                getLogger().warning("Failed to save generated ip-hash-salt: " + e.getMessage());
+            }
+        }
         cartograph = new Cartograph(cartographConfig, new JulCartographLogger(getLogger()), this::buildHeartbeat);
         cartograph.start();
         cartograph.record(buildBootEvent());
+        getProxy().getPluginManager().registerListener(this, new PlayerJoinListener(cartograph));
     }
 
     @Override

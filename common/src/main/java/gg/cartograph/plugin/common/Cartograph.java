@@ -32,6 +32,8 @@ public class Cartograph
 
     private ScheduledExecutorService heartbeatScheduler;
 
+    private IpHasher ipHasher;
+
     private long startTime;
 
     public Cartograph(CartographConfig config, CartographLogger logger, Supplier<HeartbeatTelemetryEvent> heartbeatSupplier)
@@ -48,7 +50,11 @@ public class Cartograph
     public void start()
     {
         startTime = System.currentTimeMillis();
-        buffer    = new EventBuffer(config.getBuffer(), this::flushEvents, logger);
+        var salt = config.getIpHashSalt();
+        if (salt != null && !salt.isEmpty()) {
+            ipHasher = new IpHasher(salt);
+        }
+        buffer = new EventBuffer(config.getBuffer(), this::flushEvents, logger);
         buffer.start();
         startHeartbeat();
         logger.info("Cartograph started");
@@ -95,6 +101,11 @@ public class Cartograph
             return;
         }
         buffer.add(event);
+    }
+
+    public IpHasher getIpHasher()
+    {
+        return ipHasher;
     }
 
     /**

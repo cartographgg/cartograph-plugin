@@ -71,6 +71,10 @@ public class VelocityConfigLoader
             config.setApiEndpoint((String) data.get("api-endpoint"));
         }
 
+        if (data.containsKey("ip-hash-salt")) {
+            config.setIpHashSalt((String) data.get("ip-hash-salt"));
+        }
+
         var flagsMap = (Map<String, Object>) data.get("flags");
         if (flagsMap != null) {
             for (var entry : flagsMap.entrySet()) {

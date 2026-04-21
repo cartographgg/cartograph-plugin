@@ -36,6 +36,8 @@ public class CartographConfig
 
     private String apiEndpoint = "https://api.cartograph.gg";
 
+    private String ipHashSalt = "";
+
     private Map<String, Boolean> flags = new LinkedHashMap<>();
 
     private BufferConfig buffer = new BufferConfig();
@@ -86,6 +88,16 @@ public class CartographConfig
     public void setApiEndpoint(String apiEndpoint)
     {
         this.apiEndpoint = apiEndpoint;
+    }
+
+    public String getIpHashSalt()
+    {
+        return ipHashSalt;
+    }
+
+    public void setIpHashSalt(String ipHashSalt)
+    {
+        this.ipHashSalt = ipHashSalt;
     }
 
     public Map<String, Boolean> getFlags()
