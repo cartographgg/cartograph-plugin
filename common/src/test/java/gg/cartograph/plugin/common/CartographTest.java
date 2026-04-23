@@ -54,7 +54,7 @@ class CartographTest
         cartograph.record(event("heartbeat"));
         cartograph.record(event("heartbeat"));
 
-        verify(logger).debug(contains("3"));
+        verify(logger).warn(contains("API key"));
         cartograph.stop();
     }
 
@@ -103,7 +103,7 @@ class CartographTest
         cartograph.record(event("tps_sample"));
         cartograph.stop();
 
-        verify(logger).debug(contains("2"));
+        verify(logger).warn(contains("API key"));
     }
 
     @Test

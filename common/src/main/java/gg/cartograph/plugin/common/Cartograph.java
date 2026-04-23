@@ -2,11 +2,11 @@ package gg.cartograph.plugin.common;
 
 import gg.cartograph.plugin.common.config.CartographConfig;
 import gg.cartograph.plugin.common.events.EventBuffer;
+import gg.cartograph.plugin.common.events.TelemetryClient;
 import gg.cartograph.plugin.common.events.telemetry.HeartbeatTelemetryEvent;
 import gg.cartograph.plugin.common.events.telemetry.TelemetryEvent;
 import gg.cartograph.plugin.common.logging.CartographLogger;
 
-import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +34,8 @@ public class Cartograph
 
     private IpHasher ipHasher;
 
+    private TelemetryClient telemetryClient;
+
     private long startTime;
 
     public Cartograph(CartographConfig config, CartographLogger logger, Supplier<HeartbeatTelemetryEvent> heartbeatSupplier)
@@ -54,15 +56,11 @@ public class Cartograph
         if (salt != null && !salt.isEmpty()) {
             ipHasher = new IpHasher(salt);
         }
-        buffer = new EventBuffer(config.getBuffer(), this::flushEvents, logger);
+        telemetryClient = new TelemetryClient(config.getApiEndpoint(), config.getApiKey(), logger);
+        buffer = new EventBuffer(config.getBuffer(), telemetryClient::send, logger);
         buffer.start();
         startHeartbeat();
         logger.info("Cartograph started");
-    }
-
-    private void flushEvents(List<TelemetryEvent> events)
-    {
-        logger.debug("Flushing batch of " + events.size() + " events");
     }
 
     private void startHeartbeat()
@@ -128,6 +126,10 @@ public class Cartograph
         if (buffer != null) {
             buffer.shutdown();
             buffer = null;
+        }
+        if (telemetryClient != null) {
+            telemetryClient.close();
+            telemetryClient = null;
         }
         logger.info("Cartograph stopped");
     }
