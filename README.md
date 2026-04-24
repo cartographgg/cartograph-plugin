@@ -1,6 +1,11 @@
-# Cartograph
+<p align="center">
+  <img src="https://raw.githubusercontent.com/cartographgg/.github/main/cartograph-logo%403x.png" alt="Cartograph" width="600" />
+</p>
 
-Open-source Minecraft server analytics plugin. Collects server metrics and player activity and sends them to [Cartograph](https://cartograph.gg).
+# Cartograph Plugin
+
+Open-source Minecraft server analytics plugin. Collects server metrics and player activity and sends them
+to [Cartograph](https://cartograph.gg).
 
 ## Supported Platforms
 
@@ -19,7 +24,8 @@ Spigot, Paper, and Folia are server platforms. BungeeCord and Velocity are proxy
 
 1. Download the correct JAR for your platform and Minecraft version.
 2. Place it in your server's `plugins/` directory (or `mods/` for NeoForge).
-3. Start the server. The plugin generates a default config file. Add your API key from [cartograph.gg](https://cartograph.gg) and restart.
+3. Start the server. The plugin generates a default config file. Add your API key
+   from [cartograph.gg](https://cartograph.gg) and restart.
 
 Without an API key the plugin loads but does not send any data.
 
@@ -54,19 +60,25 @@ telemetry:
 ### Reference
 
 **`api-key`** (string, default: `""`)
-Your Cartograph API key. Authenticates your server with the Cartograph platform. When empty, the plugin loads but no telemetry is sent.
+Your Cartograph API key. Authenticates your server with the Cartograph platform. When empty, the plugin loads but no
+telemetry is sent.
 
 **`api-endpoint`** (string, default: `"https://api.cartograph.gg"`)
 The URL telemetry is sent to. Only change this if you are running a self-hosted Cartograph instance.
 
 **`ip-hash-salt`** (string, default: `""`)
-A random salt used to hash player IP addresses before they are included in telemetry. Auto-generated on first startup and saved to the config. Do not share this value - it is what prevents IP hashes from being reversed. If deleted, a new salt is generated on next startup.
+A random salt used to hash player IP addresses before they are included in telemetry. Auto-generated on first startup
+and saved to the config. Do not share this value - it is what prevents IP hashes from being reversed. If deleted, a new
+salt is generated on next startup.
 
 **`flags.report-plugins`** (boolean, default: `false`)
-When `true`, the list of installed plugins (or mods on NeoForge) is included in the boot telemetry event. Disabled by default for privacy.
+When `true`, the list of installed plugins (or mods on NeoForge) is included in the boot telemetry event. Disabled by
+default for privacy.
 
 **`flags.proxy-backend`** (boolean, default: `false`)
-Set to `true` on backend servers that sit behind a BungeeCord or Velocity proxy. When enabled, the plugin skips player join/leave tracking on the backend (the proxy handles it instead) and reports the server's node type as `BACKEND`. Not present in the default config - add it manually under `flags` if needed.
+Set to `true` on backend servers that sit behind a BungeeCord or Velocity proxy. When enabled, the plugin skips player
+join/leave tracking on the backend (the proxy handles it instead) and reports the server's node type as `BACKEND`. Not
+present in the default config - add it manually under `flags` if needed.
 
 **`buffer.size-threshold`** (integer, default: `50`)
 The number of events to accumulate before triggering a flush to the API.
@@ -87,7 +99,8 @@ How often (in seconds) to collect a heartbeat snapshot.
 
 This section describes exactly what telemetry the plugin sends.
 
-Raw IP addresses are never transmitted. All IPs are hashed with a per-server salt using SHA-256 before inclusion in any telemetry.
+Raw IP addresses are never transmitted. All IPs are hashed with a per-server salt using SHA-256 before inclusion in any
+telemetry.
 
 ### Boot event
 
@@ -184,7 +197,8 @@ cartograph-plugin/
   neoforge/     NeoForge mod entry point
 ```
 
-All platform modules depend on `common`, which contains the `Cartograph` facade, event buffer, telemetry client, and config model. Platform modules provide the entry point, config loader, and event listeners specific to their platform.
+All platform modules depend on `common`, which contains the `Cartograph` facade, event buffer, telemetry client, and
+config model. Platform modules provide the entry point, config loader, and event listeners specific to their platform.
 
 ## License
 
