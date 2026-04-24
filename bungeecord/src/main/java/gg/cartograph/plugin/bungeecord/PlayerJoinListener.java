@@ -1,8 +1,8 @@
 package gg.cartograph.plugin.bungeecord;
 
 import gg.cartograph.plugin.common.Cartograph;
-import gg.cartograph.plugin.common.SessionTracker;
 import gg.cartograph.plugin.common.events.telemetry.PlayerJoinTelemetryEvent;
+import gg.cartograph.plugin.common.logging.CartographLogger;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
@@ -17,18 +17,17 @@ import java.util.UUID;
 class PlayerJoinListener implements Listener
 {
 
-    private final Cartograph    cartograph;
-    private final SessionTracker sessionTracker;
+    private final Cartograph cartograph;
 
-    PlayerJoinListener(Cartograph cartograph, SessionTracker sessionTracker)
+    PlayerJoinListener(Cartograph cartograph)
     {
-        this.cartograph     = cartograph;
-        this.sessionTracker = sessionTracker;
+        this.cartograph = cartograph;
     }
 
     @EventHandler
     public void onPostLogin(PostLoginEvent event)
     {
+        var logger = cartograph.getLogger();
         var player = event.getPlayer();
         var ip = player.getSocketAddress() instanceof InetSocketAddress addr
                  ? addr.getAddress().getHostAddress() : null;
@@ -44,6 +43,7 @@ class PlayerJoinListener implements Listener
                 isFloodgate = true;
             }
         } catch (Exception ignored) {
+            logger.debug("Floodgate API not available");
         }
 
         cartograph.record(new PlayerJoinTelemetryEvent(
@@ -57,6 +57,7 @@ class PlayerJoinListener implements Listener
                 isFloodgate,
                 ipHash
         ));
-        sessionTracker.trackJoin(player.getUniqueId());
+        cartograph.getSessionTracker().trackJoin(player.getUniqueId());
+        logger.debug("Player joined: " + player.getName() + " (" + player.getUniqueId() + "), floodgate: " + isFloodgate);
     }
 }

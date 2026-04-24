@@ -1,9 +1,9 @@
 package gg.cartograph.plugin.bungeecord;
 
 import gg.cartograph.plugin.common.Cartograph;
-import gg.cartograph.plugin.common.SessionTracker;
 import gg.cartograph.plugin.common.events.LeaveReason;
 import gg.cartograph.plugin.common.events.telemetry.PlayerLeaveTelemetryEvent;
+import gg.cartograph.plugin.common.logging.CartographLogger;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.ServerKickEvent;
 import net.md_5.bungee.api.plugin.Listener;
@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * UUID as {@link LeaveReason#KICK} if the event has not been cancelled (i.e.
  * the player was not redirected to a fallback server). Disconnect events
  * consume the pre-mark, compute the session duration via the shared
- * {@link SessionTracker}, and record a {@link PlayerLeaveTelemetryEvent}.</p>
+ * session tracker, and record a {@link PlayerLeaveTelemetryEvent}.</p>
  *
  * <p>The kick handler runs at {@link EventPriority#HIGHEST} and checks
  * {@code isCancelled()} so it only marks kicks that were not intercepted
@@ -31,15 +31,13 @@ import java.util.concurrent.ConcurrentHashMap;
 class PlayerLeaveListener implements Listener
 {
 
-    private final Cartograph    cartograph;
-    private final SessionTracker sessionTracker;
+    private final Cartograph cartograph;
 
     private final ConcurrentHashMap<UUID, LeaveReason> kickedPlayers = new ConcurrentHashMap<>();
 
-    PlayerLeaveListener(Cartograph cartograph, SessionTracker sessionTracker)
+    PlayerLeaveListener(Cartograph cartograph)
     {
-        this.cartograph     = cartograph;
-        this.sessionTracker = sessionTracker;
+        this.cartograph = cartograph;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -53,9 +51,10 @@ class PlayerLeaveListener implements Listener
     @EventHandler
     public void onPlayerDisconnect(PlayerDisconnectEvent event)
     {
+        var logger          = cartograph.getLogger();
         var player          = event.getPlayer();
         var uuid            = player.getUniqueId();
-        var sessionDuration = sessionTracker.trackLeave(uuid);
+        var sessionDuration = cartograph.getSessionTracker().trackLeave(uuid);
 
         var reason = kickedPlayers.remove(uuid);
         if (reason == null) {
@@ -69,5 +68,6 @@ class PlayerLeaveListener implements Listener
                 reason,
                 null
         ));
+        logger.debug("Player left: " + uuid + ", reason: " + reason + ", session: " + sessionDuration + "ms");
     }
 }

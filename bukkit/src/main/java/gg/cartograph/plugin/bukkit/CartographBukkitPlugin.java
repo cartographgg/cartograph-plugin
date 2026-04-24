@@ -1,9 +1,7 @@
 package gg.cartograph.plugin.bukkit;
 
 import gg.cartograph.plugin.common.Cartograph;
-import gg.cartograph.plugin.common.SessionTracker;
 import gg.cartograph.plugin.common.NodeType;
-import gg.cartograph.plugin.common.TickSampler;
 import gg.cartograph.plugin.common.config.CartographConfig;
 import gg.cartograph.plugin.common.events.*;
 import gg.cartograph.plugin.common.events.telemetry.BootTelemetryEvent;
@@ -31,8 +29,6 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
 
     private Cartograph cartograph;
 
-    private TickSampler tickSampler;
-
     @Override
     public void onDisable()
     {
@@ -56,15 +52,13 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
             getConfig().set("ip-hash-salt", salt);
             saveConfig();
         }
-        tickSampler = new TickSampler();
         cartograph  = new Cartograph(cartographConfig, new JulCartographLogger(getLogger()), this::buildHeartbeat);
         cartograph.start();
         cartograph.record(buildBootEvent());
         startTickSampling();
         if (!cartograph.isProxyBackend()) {
-            var sessionTracker = new SessionTracker();
-            getServer().getPluginManager().registerEvents(new PlayerJoinListener(cartograph, sessionTracker), this);
-            getServer().getPluginManager().registerEvents(new PlayerLeaveListener(cartograph, sessionTracker), this);
+            getServer().getPluginManager().registerEvents(new PlayerJoinListener(cartograph), this);
+            getServer().getPluginManager().registerEvents(new PlayerLeaveListener(cartograph), this);
         }
     }
 
@@ -75,9 +69,9 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
         var osBean = (com.sun.management.OperatingSystemMXBean)
                 ManagementFactory.getOperatingSystemMXBean();
 
-        var meanTick = tickSampler.getMeanTickTime();
-        var peakTick = tickSampler.getPeakTickTime();
-        tickSampler.reset();
+        var meanTick = cartograph.getTickSampler().getMeanTickTime();
+        var peakTick = cartograph.getTickSampler().getPeakTickTime();
+        cartograph.getTickSampler().reset();
 
         var chunksLoaded   = 0;
         var entitiesLoaded = 0;
@@ -165,21 +159,20 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
 
     private void startTickSampling()
     {
-        // Schedule a task every tick to measure actual tick duration
         final long[] lastTick = {System.nanoTime()};
         getServer().getScheduler().runTaskTimer(
                 this, () -> {
                     var now     = System.nanoTime();
                     var elapsed = (now - lastTick[0]) / 1_000_000.0;
                     lastTick[0] = now;
-                    tickSampler.recordTick(elapsed);
+                    cartograph.getTickSampler().recordTick(elapsed);
                 }, 1L, 1L
         );
     }
 
     protected double[] getTps()
     {
-        return tickSampler.getTps();
+        return cartograph.getTickSampler().getTps();
     }
 
     private NodeType detectNodeType()

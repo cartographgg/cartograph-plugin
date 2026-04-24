@@ -1,9 +1,7 @@
 package gg.cartograph.plugin.neoforge;
 
 import gg.cartograph.plugin.common.Cartograph;
-import gg.cartograph.plugin.common.SessionTracker;
 import gg.cartograph.plugin.common.NodeType;
-import gg.cartograph.plugin.common.TickSampler;
 import gg.cartograph.plugin.common.config.CartographConfig;
 import gg.cartograph.plugin.common.events.*;
 import gg.cartograph.plugin.common.events.telemetry.BootTelemetryEvent;
@@ -44,8 +42,6 @@ public class CartographNeoForgeMod
 
     private Cartograph cartograph;
 
-    private TickSampler tickSampler;
-
     private net.minecraft.server.MinecraftServer minecraftServer;
 
     public CartographNeoForgeMod(IEventBus modBus, ModContainer modContainer)
@@ -65,14 +61,12 @@ public class CartographNeoForgeMod
             cartographConfig.setIpHashSalt(salt);
             NeoForgeConfigLoader.setIpHashSalt(salt);
         }
-        tickSampler     = new TickSampler();
         minecraftServer = event.getServer();
         cartograph      = new Cartograph(cartographConfig, new Log4jCartographLogger(LOGGER), this::buildHeartbeat);
         cartograph.start();
         cartograph.record(buildBootEvent(event));
-        var sessionTracker = new SessionTracker();
-        NeoForge.EVENT_BUS.register(new PlayerJoinListener(cartograph, sessionTracker));
-        NeoForge.EVENT_BUS.register(new PlayerLeaveListener(cartograph, sessionTracker));
+        NeoForge.EVENT_BUS.register(new PlayerJoinListener(cartograph));
+        NeoForge.EVENT_BUS.register(new PlayerLeaveListener(cartograph));
     }
 
     private HeartbeatTelemetryEvent buildHeartbeat()
@@ -81,9 +75,9 @@ public class CartographNeoForgeMod
         var osBean = (com.sun.management.OperatingSystemMXBean)
                 ManagementFactory.getOperatingSystemMXBean();
 
-        var meanTick = tickSampler.getMeanTickTime();
-        var peakTick = tickSampler.getPeakTickTime();
-        tickSampler.reset();
+        var meanTick = cartograph.getTickSampler().getMeanTickTime();
+        var peakTick = cartograph.getTickSampler().getPeakTickTime();
+        cartograph.getTickSampler().reset();
 
         var chunksLoaded = 0;
         var worlds       = new java.util.ArrayList<WorldMetrics>();
@@ -182,8 +176,8 @@ public class CartographNeoForgeMod
     @SubscribeEvent
     public void onServerTick(net.neoforged.neoforge.event.tick.ServerTickEvent.Post event)
     {
-        if (tickSampler != null && minecraftServer != null) {
-            tickSampler.recordTick(minecraftServer.getAverageTickTimeNanos() / 1_000_000.0);
+        if (cartograph != null && minecraftServer != null) {
+            cartograph.getTickSampler().recordTick(minecraftServer.getAverageTickTimeNanos() / 1_000_000.0);
         }
     }
 

@@ -62,6 +62,9 @@ public class EventBuffer
         synchronized (this) {
             running = true;
         }
+        logger.info("Event buffer started (size threshold: " + config.getSizeThreshold()
+                + ", time threshold: " + config.getTimeThreshold() + "s"
+                + ", max retries: " + config.getMaxRetries() + ")");
         scheduleFlush();
     }
 
@@ -84,6 +87,7 @@ public class EventBuffer
             logger.debug("Added event of type: " + EventTypes.nameOf(event.type()));
 
             if (events.size() >= config.getSizeThreshold()) {
+                logger.debug("Size threshold reached (" + config.getSizeThreshold() + "), triggering flush");
                 shouldFlush = true;
             }
         }
@@ -111,6 +115,8 @@ public class EventBuffer
             retryQueue = new ArrayList<>();
         }
 
+        logger.debug("Flushing " + batch.size() + " events (" + retries.size() + " retries pending)");
+
         // Deliver retries first (older data before newer)
         for (RetryBatch retry : retries) {
             deliver(retry.events(), retry.attempt());
@@ -129,6 +135,7 @@ public class EventBuffer
      */
     public void shutdown()
     {
+        logger.info("Event buffer shutting down, flushing remaining events");
         synchronized (this) {
             running = false;
         }

@@ -1,7 +1,6 @@
 package gg.cartograph.plugin.bungeecord;
 
 import gg.cartograph.plugin.common.Cartograph;
-import gg.cartograph.plugin.common.SessionTracker;
 import gg.cartograph.plugin.common.NodeType;
 import gg.cartograph.plugin.common.config.CartographConfig;
 import gg.cartograph.plugin.common.events.BackendInfo;
@@ -64,9 +63,8 @@ public class CartographBungeePlugin extends Plugin
         cartograph = new Cartograph(cartographConfig, new JulCartographLogger(getLogger()), this::buildHeartbeat);
         cartograph.start();
         cartograph.record(buildBootEvent());
-        var sessionTracker = new SessionTracker();
-        getProxy().getPluginManager().registerListener(this, new PlayerJoinListener(cartograph, sessionTracker));
-        getProxy().getPluginManager().registerListener(this, new PlayerLeaveListener(cartograph, sessionTracker));
+        getProxy().getPluginManager().registerListener(this, new PlayerJoinListener(cartograph));
+        getProxy().getPluginManager().registerListener(this, new PlayerLeaveListener(cartograph));
     }
 
     @Override

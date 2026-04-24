@@ -1,7 +1,6 @@
-package gg.cartograph.plugin.common;
+package gg.cartograph.plugin.common.events;
 
 import gg.cartograph.plugin.common.config.BufferConfig;
-import gg.cartograph.plugin.common.events.EventBuffer;
 import gg.cartograph.plugin.common.events.telemetry.TelemetryEvent;
 import gg.cartograph.plugin.common.logging.CartographLogger;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 class EventBufferTest
@@ -143,7 +142,7 @@ class EventBufferTest
         buffer.add(event("heartbeat"));
 
         assertTrue(flushedBatches.isEmpty());
-        verify(logger).warn(contains("shutdown"));
+        verify(logger).warn("Event added after shutdown, ignoring");
     }
 
     @Test
@@ -205,7 +204,7 @@ class EventBufferTest
         failingBuffer.add(event("latency"));
         failingBuffer.add(event("latency"));
 
-        verify(logger, atLeastOnce()).error(contains("discarded"), any(Throwable.class));
+        verify(logger, atLeastOnce()).error(eq("Batch of 3 events discarded after 2 failed attempts"), any(Throwable.class));
         failingBuffer.shutdown();
     }
 
@@ -234,5 +233,23 @@ class EventBufferTest
 
         var totalFlushed = flushedBatches.stream().mapToInt(List::size).sum();
         assertEquals(100, totalFlushed);
+    }
+
+    @Test
+    void startLogsBufferConfig()
+    {
+        buffer.start();
+
+        verify(logger).info("Event buffer started (size threshold: 3, time threshold: 1s, max retries: 2)");
+        buffer.shutdown();
+    }
+
+    @Test
+    void shutdownLogsMessage()
+    {
+        buffer.start();
+        buffer.shutdown();
+
+        verify(logger).info("Event buffer shutting down, flushing remaining events");
     }
 }

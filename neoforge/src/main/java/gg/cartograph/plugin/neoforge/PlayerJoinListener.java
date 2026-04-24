@@ -1,8 +1,8 @@
 package gg.cartograph.plugin.neoforge;
 
 import gg.cartograph.plugin.common.Cartograph;
-import gg.cartograph.plugin.common.SessionTracker;
 import gg.cartograph.plugin.common.events.telemetry.PlayerJoinTelemetryEvent;
+import gg.cartograph.plugin.common.logging.CartographLogger;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -17,13 +17,11 @@ import java.util.UUID;
 class PlayerJoinListener
 {
 
-    private final Cartograph    cartograph;
-    private final SessionTracker sessionTracker;
+    private final Cartograph cartograph;
 
-    PlayerJoinListener(Cartograph cartograph, SessionTracker sessionTracker)
+    PlayerJoinListener(Cartograph cartograph)
     {
-        this.cartograph     = cartograph;
-        this.sessionTracker = sessionTracker;
+        this.cartograph = cartograph;
     }
 
     @SubscribeEvent
@@ -38,6 +36,7 @@ class PlayerJoinListener
             return;
         }
 
+        var    logger     = cartograph.getLogger();
         var    connection = serverPlayer.connection.getConnection();
         var    address    = connection.getRemoteAddress();
         String ip         = null;
@@ -56,6 +55,7 @@ class PlayerJoinListener
                 isFloodgate = true;
             }
         } catch (Exception ignored) {
+            logger.debug("Floodgate API not available");
         }
 
         cartograph.record(new PlayerJoinTelemetryEvent(
@@ -69,6 +69,7 @@ class PlayerJoinListener
                 isFloodgate,
                 ipHash
         ));
-        sessionTracker.trackJoin(player.getUUID());
+        cartograph.getSessionTracker().trackJoin(player.getUUID());
+        logger.debug("Player joined: " + player.getGameProfile().getName() + " (" + player.getUUID() + "), floodgate: " + isFloodgate);
     }
 }

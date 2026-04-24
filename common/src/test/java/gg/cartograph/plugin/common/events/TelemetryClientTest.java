@@ -60,7 +60,7 @@ class TelemetryClientTest
 
         client.send(List.of(event("h")));
 
-        verify(logger).warn(contains("API key"));
+        verify(logger).warn("Telemetry not sent \u2014 API key is not configured");
         verify(httpClient, never()).send(any(), any());
     }
 
@@ -71,7 +71,7 @@ class TelemetryClientTest
 
         client.send(List.of(event("h")));
 
-        verify(logger).warn(contains("API key"));
+        verify(logger).warn("Telemetry not sent \u2014 API key is not configured");
         verify(httpClient, never()).send(any(), any());
     }
 
@@ -110,7 +110,7 @@ class TelemetryClientTest
 
         assertDoesNotThrow(() -> client.send(List.of(event("h"))));
 
-        verify(logger).error(contains("401"));
+        verify(logger).error("Cartograph API rejected batch with status 401 \u2014 discarding");
     }
 
     @SuppressWarnings("unchecked")
@@ -197,5 +197,33 @@ class TelemetryClientTest
         assertTrue(json.get("a").asLong() > 0);
         assertEquals(1, json.get("e").size());
         assertEquals("h", json.get("e").get(0).get("t").asText());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void logsDebugBeforeSending() throws Exception
+    {
+        var response = mock(HttpResponse.class);
+        when(response.statusCode()).thenReturn(200);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).thenReturn(response);
+
+        var client = new TelemetryClient("https://api.cartograph.gg", "test-key", logger, httpClient);
+        client.send(List.of(event("h")));
+
+        verify(logger).debug("Sending batch of 1 events to https://api.cartograph.gg/ingest");
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void logsCompressedPayloadSize() throws Exception
+    {
+        var response = mock(HttpResponse.class);
+        when(response.statusCode()).thenReturn(200);
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).thenReturn(response);
+
+        var client = new TelemetryClient("https://api.cartograph.gg", "test-key", logger, httpClient);
+        client.send(List.of(event("h")));
+
+        verify(logger).debug(contains("Compressed payload:"));
     }
 }

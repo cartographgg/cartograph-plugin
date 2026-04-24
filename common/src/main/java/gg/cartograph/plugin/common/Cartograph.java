@@ -2,6 +2,7 @@ package gg.cartograph.plugin.common;
 
 import gg.cartograph.plugin.common.config.CartographConfig;
 import gg.cartograph.plugin.common.events.EventBuffer;
+import gg.cartograph.plugin.common.events.EventTypes;
 import gg.cartograph.plugin.common.events.TelemetryClient;
 import gg.cartograph.plugin.common.events.telemetry.HeartbeatTelemetryEvent;
 import gg.cartograph.plugin.common.events.telemetry.TelemetryEvent;
@@ -34,6 +35,10 @@ public class Cartograph
 
     private IpHasher ipHasher;
 
+    private SessionTracker sessionTracker;
+
+    private TickSampler tickSampler;
+
     private TelemetryClient telemetryClient;
 
     private long startTime;
@@ -55,7 +60,11 @@ public class Cartograph
         var salt = config.getIpHashSalt();
         if (salt != null && !salt.isEmpty()) {
             ipHasher = new IpHasher(salt);
+            logger.info("IP hashing enabled");
+        } else {
+            logger.info("IP hashing disabled — no salt configured");
         }
+        sessionTracker = new SessionTracker(logger);
         telemetryClient = new TelemetryClient(config.getApiEndpoint(), config.getApiKey(), logger);
         buffer = new EventBuffer(config.getBuffer(), telemetryClient::send, logger);
         buffer.start();
@@ -67,6 +76,7 @@ public class Cartograph
     {
         var heartbeatConfig = config.getTelemetry().get("heartbeat");
         if (heartbeatConfig == null || !heartbeatConfig.isEnabled()) {
+            logger.info("Heartbeat disabled");
             return;
         }
 
@@ -80,11 +90,13 @@ public class Cartograph
                 () -> {
                     try {
                         record(heartbeatSupplier.get());
+                        logger.debug("Heartbeat collected");
                     } catch (Exception e) {
                         logger.error("Failed to collect heartbeat", e);
                     }
                 }, heartbeatConfig.getInterval(), heartbeatConfig.getInterval(), TimeUnit.SECONDS
         );
+        logger.info("Heartbeat scheduled every " + heartbeatConfig.getInterval() + "s");
     }
 
     /**
@@ -98,12 +110,31 @@ public class Cartograph
             logger.warn("Cannot record event — Cartograph not started");
             return;
         }
+        logger.debug("Recording event of type: " + EventTypes.nameOf(event.type()));
         buffer.add(event);
     }
 
     public IpHasher getIpHasher()
     {
         return ipHasher;
+    }
+
+    public CartographLogger getLogger()
+    {
+        return logger;
+    }
+
+    public SessionTracker getSessionTracker()
+    {
+        return sessionTracker;
+    }
+
+    public synchronized TickSampler getTickSampler()
+    {
+        if (tickSampler == null) {
+            tickSampler = new TickSampler();
+        }
+        return tickSampler;
     }
 
     /**
@@ -131,6 +162,7 @@ public class Cartograph
             telemetryClient.close();
             telemetryClient = null;
         }
+        sessionTracker = null;
         logger.info("Cartograph stopped");
     }
 

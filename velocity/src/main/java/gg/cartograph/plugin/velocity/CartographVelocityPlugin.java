@@ -8,7 +8,6 @@ import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 import gg.cartograph.plugin.common.Cartograph;
-import gg.cartograph.plugin.common.SessionTracker;
 import gg.cartograph.plugin.common.NodeType;
 import gg.cartograph.plugin.common.config.CartographConfig;
 import gg.cartograph.plugin.common.events.BackendInfo;
@@ -100,9 +99,8 @@ public class CartographVelocityPlugin
         cartograph = new Cartograph(cartographConfig, new Slf4jCartographLogger(logger), this::buildHeartbeat);
         cartograph.start();
         cartograph.record(buildBootEvent());
-        var sessionTracker = new SessionTracker();
-        server.getEventManager().register(this, new PlayerJoinListener(cartograph, sessionTracker));
-        server.getEventManager().register(this, new PlayerLeaveListener(cartograph, sessionTracker));
+        server.getEventManager().register(this, new PlayerJoinListener(cartograph));
+        server.getEventManager().register(this, new PlayerLeaveListener(cartograph));
     }
 
     private HeartbeatTelemetryEvent buildHeartbeat()

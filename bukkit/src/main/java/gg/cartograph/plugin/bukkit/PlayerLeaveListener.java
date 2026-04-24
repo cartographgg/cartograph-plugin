@@ -1,9 +1,9 @@
 package gg.cartograph.plugin.bukkit;
 
 import gg.cartograph.plugin.common.Cartograph;
-import gg.cartograph.plugin.common.SessionTracker;
 import gg.cartograph.plugin.common.events.LeaveReason;
 import gg.cartograph.plugin.common.events.telemetry.PlayerLeaveTelemetryEvent;
+import gg.cartograph.plugin.common.logging.CartographLogger;
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Subscribes to kick and quit events. Kick events pre-mark the player's
  * disconnect reason (checking the server ban list to distinguish bans from
  * regular kicks). Quit events compute the session duration via the shared
- * {@link SessionTracker}, consume the pre-mark, and record a
+ * session tracker, consume the pre-mark, and record a
  * {@link PlayerLeaveTelemetryEvent}.</p>
  *
  * <p>The kick handler uses {@link EventPriority#MONITOR} with
@@ -36,15 +36,13 @@ import java.util.concurrent.ConcurrentHashMap;
 class PlayerLeaveListener implements Listener
 {
 
-    private final Cartograph    cartograph;
-    private final SessionTracker sessionTracker;
+    private final Cartograph cartograph;
 
     private final ConcurrentHashMap<UUID, LeaveReason> kickedPlayers = new ConcurrentHashMap<>();
 
-    PlayerLeaveListener(Cartograph cartograph, SessionTracker sessionTracker)
+    PlayerLeaveListener(Cartograph cartograph)
     {
-        this.cartograph     = cartograph;
-        this.sessionTracker = sessionTracker;
+        this.cartograph = cartograph;
     }
 
     @SuppressWarnings("deprecation")
@@ -61,9 +59,10 @@ class PlayerLeaveListener implements Listener
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event)
     {
+        var logger          = cartograph.getLogger();
         var player          = event.getPlayer();
         var uuid            = player.getUniqueId();
-        var sessionDuration = sessionTracker.trackLeave(uuid);
+        var sessionDuration = cartograph.getSessionTracker().trackLeave(uuid);
 
         var reason = kickedPlayers.remove(uuid);
         if (reason == null) {
@@ -77,6 +76,7 @@ class PlayerLeaveListener implements Listener
                 reason,
                 player.getWorld().getName()
         ));
+        logger.debug("Player left: " + uuid + ", reason: " + reason + ", session: " + sessionDuration + "ms");
     }
 
     /**
@@ -85,17 +85,20 @@ class PlayerLeaveListener implements Listener
      */
     private LeaveReason classifyReasonFromPaper(PlayerQuitEvent event)
     {
+        var logger = cartograph.getLogger();
         try {
             var getReasonMethod = event.getClass().getMethod("getReason");
             var quitReason      = getReasonMethod.invoke(event);
             var reasonName      = quitReason.toString();
 
+            logger.debug("Paper quit reason: " + reasonName);
             return switch (reasonName) {
                 case "KICKED" -> LeaveReason.KICK;
                 case "TIMED_OUT", "ERRONEOUS_STATE" -> LeaveReason.TIMEOUT;
                 default -> LeaveReason.QUIT;
             };
         } catch (Exception ignored) {
+            logger.debug("Paper API not available, defaulting to QUIT");
             return LeaveReason.QUIT;
         }
     }

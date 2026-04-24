@@ -1,5 +1,7 @@
 package gg.cartograph.plugin.common;
 
+import gg.cartograph.plugin.common.logging.CartographLogger;
+
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -16,9 +18,17 @@ public class SessionTracker
 
     private final ConcurrentHashMap<UUID, Long> joinTimes = new ConcurrentHashMap<>();
 
+    private final CartographLogger logger;
+
+    public SessionTracker(CartographLogger logger)
+    {
+        this.logger = logger;
+    }
+
     public void trackJoin(UUID uuid)
     {
         joinTimes.put(uuid, System.currentTimeMillis());
+        logger.debug("Session started for player " + uuid);
     }
 
     /**
@@ -29,6 +39,12 @@ public class SessionTracker
     public Long trackLeave(UUID uuid)
     {
         var joinTime = joinTimes.remove(uuid);
-        return joinTime != null ? System.currentTimeMillis() - joinTime : null;
+        if (joinTime == null) {
+            logger.debug("No session found for player " + uuid);
+            return null;
+        }
+        var duration = System.currentTimeMillis() - joinTime;
+        logger.debug("Session ended for player " + uuid + ", duration: " + duration + "ms");
+        return duration;
     }
 }

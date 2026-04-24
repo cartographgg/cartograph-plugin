@@ -80,11 +80,13 @@ public class TelemetryClient
         }
 
         var envelope = new TelemetryEnvelope(System.currentTimeMillis(), events);
+        logger.debug("Sending batch of " + events.size() + " events to " + apiEndpoint + "/ingest");
 
         byte[] compressed;
         try {
             var json = mapper.writeValueAsBytes(envelope);
             compressed = gzip(json);
+            logger.debug("Compressed payload: " + compressed.length + " bytes");
         } catch (IOException e) {
             logger.error("Failed to serialize telemetry batch", e);
             return;

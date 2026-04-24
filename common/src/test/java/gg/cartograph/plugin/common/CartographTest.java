@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.function.Supplier;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -54,7 +55,7 @@ class CartographTest
         cartograph.record(event("heartbeat"));
         cartograph.record(event("heartbeat"));
 
-        verify(logger).warn(contains("API key"));
+        verify(logger).warn("Telemetry not sent \u2014 API key is not configured");
         cartograph.stop();
     }
 
@@ -81,7 +82,7 @@ class CartographTest
     {
         cartograph.record(event("heartbeat"));
 
-        verify(logger).warn(contains("started"));
+        verify(logger).warn("Cannot record event \u2014 Cartograph not started");
     }
 
     @Test
@@ -103,7 +104,7 @@ class CartographTest
         cartograph.record(event("tps_sample"));
         cartograph.stop();
 
-        verify(logger).warn(contains("API key"));
+        verify(logger).warn("Telemetry not sent \u2014 API key is not configured");
     }
 
     @Test
@@ -113,7 +114,75 @@ class CartographTest
         cartograph = new Cartograph(config, logger, heartbeatSupplier);
         cartograph.start();
 
+        verify(logger).info("Heartbeat disabled");
         verify(logger, never()).error(anyString(), any(Throwable.class));
         cartograph.stop();
+    }
+
+    @Test
+    void heartbeatScheduledLogsInterval()
+    {
+        cartograph.start();
+
+        verify(logger).info("Heartbeat scheduled every 60s");
+        cartograph.stop();
+    }
+
+    @Test
+    void startLogsIpHashingEnabled()
+    {
+        config.setIpHashSalt("test-salt");
+        cartograph = new Cartograph(config, logger, heartbeatSupplier);
+        cartograph.start();
+
+        verify(logger).info("IP hashing enabled");
+        cartograph.stop();
+    }
+
+    @Test
+    void startLogsIpHashingDisabled()
+    {
+        config.setIpHashSalt("");
+        cartograph = new Cartograph(config, logger, heartbeatSupplier);
+        cartograph.start();
+
+        verify(logger).info("IP hashing disabled \u2014 no salt configured");
+        cartograph.stop();
+    }
+
+    @Test
+    void getLoggerReturnsInjectedLogger()
+    {
+        assertEquals(logger, cartograph.getLogger());
+    }
+
+    @Test
+    void getSessionTrackerReturnsNullBeforeStart()
+    {
+        assertNull(cartograph.getSessionTracker());
+    }
+
+    @Test
+    void getSessionTrackerReturnsInstanceAfterStart()
+    {
+        cartograph.start();
+        assertNotNull(cartograph.getSessionTracker());
+        cartograph.stop();
+    }
+
+    @Test
+    void getSessionTrackerReturnsNullAfterStop()
+    {
+        cartograph.start();
+        cartograph.stop();
+        assertNull(cartograph.getSessionTracker());
+    }
+
+    @Test
+    void getTickSamplerCreatesLazily()
+    {
+        var sampler = cartograph.getTickSampler();
+        assertNotNull(sampler);
+        assertSame(sampler, cartograph.getTickSampler());
     }
 }
