@@ -16,7 +16,7 @@ bungeecord-v261 = "26.1-R0.1-SNAPSHOT"
 
 # Mods
 neoforge-v121 = "21.1.77"
-neoforge-v261 = "26.1.2.20-beta"
+# neoforge-v261 omitted — only -beta/-alpha builds exist upstream as of 2026-05-02
 
 # JSON
 jackson = "2.18.2"

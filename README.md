@@ -13,12 +13,16 @@ to [Cartograph](https://cartograph.gg).
 |------------|------------|---------------------------------------|
 | Spigot     | 1.21, 26.1 | `cartograph-spigot-{version}.jar`     |
 | Paper      | 1.21, 26.1 | `cartograph-paper-{version}.jar`      |
-| Folia      | 1.21, 26.1 | `cartograph-folia-{version}.jar`      |
+| Folia      | 1.21       | `cartograph-folia-{version}.jar`      |
 | BungeeCord | 1.21, 26.1 | `cartograph-bungeecord-{version}.jar` |
 | Velocity   | 1.21, 26.1 | `cartograph-velocity-{version}.jar`   |
-| NeoForge   | 1.21, 26.1 | `cartograph-neoforge-{version}.jar`   |
+| NeoForge   | 1.21       | `cartograph-neoforge-{version}.jar`   |
 
 Spigot, Paper, and Folia are server platforms. BungeeCord and Velocity are proxy platforms. NeoForge is a mod loader.
+
+Folia and NeoForge are not yet supported on Minecraft 26.1: PaperMC has not released
+a Folia experimental for the 26.x line, and NeoForge 26.x ships only beta builds
+upstream. Both lines will be added when stable upstream releases ship.
 
 ## Installation
 
