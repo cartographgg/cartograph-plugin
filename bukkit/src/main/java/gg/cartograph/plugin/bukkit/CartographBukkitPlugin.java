@@ -8,6 +8,7 @@ import gg.cartograph.plugin.common.events.telemetry.BootTelemetryEvent;
 import gg.cartograph.plugin.common.events.telemetry.HeartbeatTelemetryEvent;
 import gg.cartograph.plugin.common.events.telemetry.ShutdownTelemetryEvent;
 import gg.cartograph.plugin.common.logging.JulCartographLogger;
+import gg.cartograph.plugin.common.world.WorldStatsProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.management.ManagementFactory;
@@ -29,6 +30,8 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
 
     private Cartograph cartograph;
 
+    private WorldStatsProvider worldStats;
+
     @Override
     public void onDisable()
     {
@@ -37,6 +40,9 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
                 cartograph.getUptime(),
                 ShutdownReason.CLEAN
         ));
+        if (worldStats != null) {
+            worldStats.stop();
+        }
         cartograph.stop();
     }
 
@@ -52,14 +58,30 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
             getConfig().set("ip-hash-salt", salt);
             saveConfig();
         }
-        cartograph  = new Cartograph(cartographConfig, new JulCartographLogger(getLogger()), this::buildHeartbeat);
+        cartograph = new Cartograph(cartographConfig, new JulCartographLogger(getLogger()), this::buildHeartbeat);
         cartograph.start();
+        worldStats = createWorldStatsProvider();
+        var heartbeatConfig = cartographConfig.getTelemetry().get("heartbeat");
+        if (heartbeatConfig != null && heartbeatConfig.isEnabled()) {
+            worldStats.start(heartbeatConfig.getInterval());
+        }
         cartograph.record(buildBootEvent());
         startTickSampling();
         if (!cartograph.isProxyBackend()) {
             getServer().getPluginManager().registerEvents(new PlayerJoinListener(cartograph), this);
             getServer().getPluginManager().registerEvents(new PlayerLeaveListener(cartograph), this);
         }
+    }
+
+    /**
+     * Returns the {@link WorldStatsProvider} this platform should use. Defaults
+     * to {@link BukkitWorldStatsProvider}, which samples on the main tick thread
+     * via {@code BukkitScheduler#runTaskTimer}. Folia overrides this to use the
+     * global region scheduler.
+     */
+    protected WorldStatsProvider createWorldStatsProvider()
+    {
+        return new BukkitWorldStatsProvider(this);
     }
 
     private HeartbeatTelemetryEvent buildHeartbeat()
@@ -73,19 +95,7 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
         var peakTick = cartograph.getTickSampler().getPeakTickTime();
         cartograph.getTickSampler().reset();
 
-        var chunksLoaded   = 0;
-        var entitiesLoaded = 0;
-        var worlds         = new java.util.ArrayList<WorldMetrics>();
-
-        for (var world : server.getWorlds()) {
-            var chunks   = world.getLoadedChunks().length;
-            var entities = world.getEntities().size();
-            chunksLoaded += chunks;
-            entitiesLoaded += entities;
-            if (WorldMetrics.isNotable(chunks, entities)) {
-                worlds.add(new WorldMetrics(world.getName(), chunks, entities));
-            }
-        }
+        var stats = worldStats.snapshot();
 
         return new HeartbeatTelemetryEvent(
                 System.currentTimeMillis(),
@@ -98,9 +108,9 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
                 osBean.getProcessCpuLoad(),
                 osBean.getCpuLoad(),
                 Thread.activeCount(),
-                chunksLoaded,
-                entitiesLoaded,
-                worlds.isEmpty() ? null : worlds
+                stats.chunksLoaded(),
+                stats.entitiesLoaded(),
+                stats.notableWorlds().isEmpty() ? null : stats.notableWorlds()
         );
     }
 
@@ -157,7 +167,16 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
         );
     }
 
-    private void startTickSampling()
+    /**
+     * Schedules the per-tick sampler that feeds {@link gg.cartograph.plugin.common.TickSampler}.
+     *
+     * <p>Default implementation uses the Bukkit scheduler's {@code runTaskTimer},
+     * which works on Paper and Spigot. Folia overrides this because Folia's
+     * {@code CraftScheduler} throws {@code UnsupportedOperationException} for
+     * the legacy Bukkit timer API and requires the global region scheduler
+     * instead.</p>
+     */
+    protected void startTickSampling()
     {
         final long[] lastTick = {System.nanoTime()};
         getServer().getScheduler().runTaskTimer(

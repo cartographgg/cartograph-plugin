@@ -44,6 +44,8 @@ public class CartographNeoForgeMod
 
     private net.minecraft.server.MinecraftServer minecraftServer;
 
+    private final NeoForgeWorldStatsProvider worldStats = new NeoForgeWorldStatsProvider();
+
     public CartographNeoForgeMod(IEventBus modBus, ModContainer modContainer)
     {
         NeoForge.EVENT_BUS.register(this);
@@ -64,6 +66,10 @@ public class CartographNeoForgeMod
         minecraftServer = event.getServer();
         cartograph      = new Cartograph(cartographConfig, new Log4jCartographLogger(LOGGER), this::buildHeartbeat);
         cartograph.start();
+        var heartbeatConfig = cartographConfig.getTelemetry().get("heartbeat");
+        if (heartbeatConfig != null && heartbeatConfig.isEnabled()) {
+            worldStats.start(heartbeatConfig.getInterval());
+        }
         cartograph.record(buildBootEvent(event));
         NeoForge.EVENT_BUS.register(new PlayerJoinListener(cartograph));
         NeoForge.EVENT_BUS.register(new PlayerLeaveListener(cartograph));
@@ -79,20 +85,7 @@ public class CartographNeoForgeMod
         var peakTick = cartograph.getTickSampler().getPeakTickTime();
         cartograph.getTickSampler().reset();
 
-        var chunksLoaded = 0;
-        var worlds       = new java.util.ArrayList<WorldMetrics>();
-
-        for (var level : minecraftServer.getAllLevels()) {
-            var chunks = level.getChunkSource().getLoadedChunksCount();
-            chunksLoaded += chunks;
-            if (WorldMetrics.isNotable(chunks, 0)) {
-                worlds.add(new WorldMetrics(
-                        level.dimension().location().toString(),
-                        chunks,
-                        null
-                ));
-            }
-        }
+        var stats = worldStats.snapshot();
 
         return new HeartbeatTelemetryEvent(
                 System.currentTimeMillis(),
@@ -105,9 +98,9 @@ public class CartographNeoForgeMod
                 osBean.getProcessCpuLoad(),
                 osBean.getCpuLoad(),
                 Thread.activeCount(),
-                chunksLoaded,
-                null,
-                worlds.isEmpty() ? null : worlds
+                stats.chunksLoaded(),
+                stats.entitiesLoaded(),
+                stats.notableWorlds().isEmpty() ? null : stats.notableWorlds()
         );
     }
 
@@ -169,6 +162,7 @@ public class CartographNeoForgeMod
                     cartograph.getUptime(),
                     ShutdownReason.CLEAN
             ));
+            worldStats.stop();
             cartograph.stop();
         }
     }
@@ -178,6 +172,7 @@ public class CartographNeoForgeMod
     {
         if (cartograph != null && minecraftServer != null) {
             cartograph.getTickSampler().recordTick(minecraftServer.getAverageTickTimeNanos() / 1_000_000.0);
+            worldStats.sample(minecraftServer);
         }
     }
 
