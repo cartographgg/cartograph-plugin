@@ -20,7 +20,7 @@ import gg.cartograph.plugin.common.events.telemetry.ShutdownTelemetryEvent;
 import gg.cartograph.plugin.common.logging.Slf4jCartographLogger;
 import org.slf4j.Logger;
 
-import javax.inject.Inject;
+import com.google.inject.Inject;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Path;
