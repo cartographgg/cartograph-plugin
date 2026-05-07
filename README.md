@@ -206,4 +206,4 @@ config model. Platform modules provide the entry point, config loader, and event
 
 ## License
 
-All Rights Reserved.
+Released under the [MIT License](LICENSE). © Cartograph contributors.
