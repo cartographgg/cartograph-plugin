@@ -26,8 +26,6 @@ public class NeoForgeConfigLoader
 
     private static final ModConfigSpec.ConfigValue<String> API_ENDPOINT;
 
-    private static final ModConfigSpec.ConfigValue<String> IP_HASH_SALT;
-
     private static final ModConfigSpec.BooleanValue FLAG_REPORT_PLUGINS;
 
     private static final ModConfigSpec.IntValue BUFFER_SIZE_THRESHOLD;
@@ -51,10 +49,6 @@ public class NeoForgeConfigLoader
         API_ENDPOINT = builder
                 .comment("API endpoint URL")
                 .define("api-endpoint", "https://api.cartograph.gg");
-
-        IP_HASH_SALT = builder
-                .comment("Salt used for hashing player IP addresses")
-                .define("ip-hash-salt", "");
 
         builder.comment("Feature flags").push("flags");
 
@@ -107,7 +101,6 @@ public class NeoForgeConfigLoader
         var config = CartographConfig.defaults();
 
         config.setApiKey(API_KEY.get());
-        config.setIpHashSalt(IP_HASH_SALT.get());
         config.setApiEndpoint(API_ENDPOINT.get());
 
         config.getFlags().put("report-plugins", FLAG_REPORT_PLUGINS.get());
@@ -125,13 +118,5 @@ public class NeoForgeConfigLoader
 
 
         return config;
-    }
-
-    /**
-     * Persists a generated IP hash salt back to the NeoForge config spec.
-     */
-    public static void setIpHashSalt(String salt)
-    {
-        IP_HASH_SALT.set(salt);
     }
 }

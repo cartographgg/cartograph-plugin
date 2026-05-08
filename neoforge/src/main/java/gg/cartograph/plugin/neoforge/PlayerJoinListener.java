@@ -7,7 +7,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
-import java.net.InetSocketAddress;
 import java.util.UUID;
 
 /**
@@ -36,14 +35,7 @@ class PlayerJoinListener
             return;
         }
 
-        var    logger     = cartograph.getLogger();
-        var    connection = serverPlayer.connection.getConnection();
-        var    address    = connection.getRemoteAddress();
-        String ip         = null;
-        if (address instanceof InetSocketAddress inetAddress) {
-            ip = inetAddress.getAddress().getHostAddress();
-        }
-        var ipHash = cartograph.getIpHasher() != null ? cartograph.getIpHasher().hash(ip) : null;
+        var logger = cartograph.getLogger();
 
         Boolean isFloodgate = null;
         try {
@@ -66,8 +58,7 @@ class PlayerJoinListener
                 null,
                 serverPlayer.clientInformation().language(),
                 serverPlayer.level().dimension().location().toString(),
-                isFloodgate,
-                ipHash
+                isFloodgate
         ));
         cartograph.getSessionTracker().trackJoin(player.getUUID());
         logger.debug("Player joined: " + player.getGameProfile().getName() + " (" + player.getUUID() + "), floodgate: " + isFloodgate);

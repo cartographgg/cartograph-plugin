@@ -56,13 +56,6 @@ public class CartographNeoForgeMod
     public void onServerStarting(ServerStartingEvent event)
     {
         cartographConfig = NeoForgeConfigLoader.load();
-        if (cartographConfig.getIpHashSalt().isEmpty()) {
-            var bytes = new byte[32];
-            new java.security.SecureRandom().nextBytes(bytes);
-            var salt = java.util.HexFormat.of().formatHex(bytes);
-            cartographConfig.setIpHashSalt(salt);
-            NeoForgeConfigLoader.setIpHashSalt(salt);
-        }
         minecraftServer = event.getServer();
         cartograph      = new Cartograph(cartographConfig, new Log4jCartographLogger(LOGGER), this::buildHeartbeat);
         cartograph.start();

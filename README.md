@@ -45,7 +45,6 @@ Default `config.yml`:
 ```yaml
 api-key: ""
 api-endpoint: "https://api.cartograph.gg"
-ip-hash-salt: ""
 
 flags:
   report-plugins: false
@@ -69,11 +68,6 @@ telemetry is sent.
 
 **`api-endpoint`** (string, default: `"https://api.cartograph.gg"`)
 The URL telemetry is sent to. Only change this if you are running a self-hosted Cartograph instance.
-
-**`ip-hash-salt`** (string, default: `""`)
-A random salt used to hash player IP addresses before they are included in telemetry. Auto-generated on first startup
-and saved to the config. Do not share this value - it is what prevents IP hashes from being reversed. If deleted, a new
-salt is generated on next startup.
 
 **`flags.report-plugins`** (boolean, default: `false`)
 When `true`, the list of installed plugins (or mods on NeoForge) is included in the boot telemetry event. Disabled by
@@ -102,9 +96,6 @@ How often (in seconds) to collect a heartbeat snapshot.
 ## Data Collection
 
 This section describes exactly what telemetry the plugin sends.
-
-Raw IP addresses are never transmitted. All IPs are hashed with a per-server salt using SHA-256 before inclusion in any
-telemetry.
 
 ### Boot event
 
@@ -142,7 +133,6 @@ Sent periodically (default every 60 seconds).
 - Player locale
 - Current world
 - Whether the player connected via Floodgate (Bedrock Edition bridge)
-- Hashed IP address
 
 ### Player leave
 

@@ -47,7 +47,6 @@ public class BukkitConfigLoader
 
         config.setApiKey(section.getString("api-key", config.getApiKey()));
         config.setApiEndpoint(section.getString("api-endpoint", config.getApiEndpoint()));
-        config.setIpHashSalt(section.getString("ip-hash-salt", config.getIpHashSalt()));
 
         var flagsSection = section.getConfigurationSection("flags");
         if (flagsSection != null) {

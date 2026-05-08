@@ -27,8 +27,6 @@ class PlayerJoinListener
     {
         var logger = cartograph.getLogger();
         var player = event.getPlayer();
-        var ip     = player.getRemoteAddress().getAddress().getHostAddress();
-        var ipHash = cartograph.getIpHasher() != null ? cartograph.getIpHasher().hash(ip) : null;
 
         Boolean isFloodgate = null;
         try {
@@ -51,8 +49,7 @@ class PlayerJoinListener
                 player.getProtocolVersion().getProtocol(),
                 player.getEffectiveLocale() != null ? player.getEffectiveLocale().toString() : null,
                 null,
-                isFloodgate,
-                ipHash
+                isFloodgate
         ));
         cartograph.getSessionTracker().trackJoin(player.getUniqueId());
         logger.debug("Player joined: " + player.getUsername() + " (" + player.getUniqueId() + "), floodgate: " + isFloodgate);
