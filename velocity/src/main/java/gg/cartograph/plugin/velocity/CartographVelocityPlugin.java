@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Velocity proxy entry point for the Cartograph plugin.
@@ -72,29 +71,6 @@ public class CartographVelocityPlugin
         } catch (IOException e) {
             logger.error("Failed to load config", e);
             return;
-        }
-        if (cartographConfig.getIpHashSalt().isEmpty()) {
-            var bytes = new byte[32];
-            new java.security.SecureRandom().nextBytes(bytes);
-            var salt = java.util.HexFormat.of().formatHex(bytes);
-            cartographConfig.setIpHashSalt(salt);
-            try {
-                var                 configPath = dataDirectory.resolve("config.yml");
-                var                 yaml       = new org.yaml.snakeyaml.Yaml();
-                Map<String, Object> data;
-                try (var reader = java.nio.file.Files.newBufferedReader(configPath)) {
-                    data = yaml.load(reader);
-                }
-                if (data == null) {
-                    data = new java.util.LinkedHashMap<>();
-                }
-                data.put("ip-hash-salt", salt);
-                try (var writer = java.nio.file.Files.newBufferedWriter(configPath)) {
-                    yaml.dump(data, writer);
-                }
-            } catch (IOException ex) {
-                logger.warn("Failed to save generated ip-hash-salt: {}", ex.getMessage());
-            }
         }
         cartograph = new Cartograph(cartographConfig, new Slf4jCartographLogger(logger), this::buildHeartbeat);
         cartograph.start();

@@ -129,28 +129,6 @@ class CartographTest
     }
 
     @Test
-    void startLogsIpHashingEnabled()
-    {
-        config.setIpHashSalt("test-salt");
-        cartograph = new Cartograph(config, logger, heartbeatSupplier);
-        cartograph.start();
-
-        verify(logger).info("IP hashing enabled");
-        cartograph.stop();
-    }
-
-    @Test
-    void startLogsIpHashingDisabled()
-    {
-        config.setIpHashSalt("");
-        cartograph = new Cartograph(config, logger, heartbeatSupplier);
-        cartograph.start();
-
-        verify(logger).info("IP hashing disabled \u2014 no salt configured");
-        cartograph.stop();
-    }
-
-    @Test
     void getLoggerReturnsInjectedLogger()
     {
         assertEquals(logger, cartograph.getLogger());

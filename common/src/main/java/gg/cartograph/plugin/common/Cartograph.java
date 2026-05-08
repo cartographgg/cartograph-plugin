@@ -33,8 +33,6 @@ public class Cartograph
 
     private ScheduledExecutorService heartbeatScheduler;
 
-    private IpHasher ipHasher;
-
     private SessionTracker sessionTracker;
 
     private TickSampler tickSampler;
@@ -57,13 +55,6 @@ public class Cartograph
     public void start()
     {
         startTime = System.currentTimeMillis();
-        var salt = config.getIpHashSalt();
-        if (salt != null && !salt.isEmpty()) {
-            ipHasher = new IpHasher(salt);
-            logger.info("IP hashing enabled");
-        } else {
-            logger.info("IP hashing disabled — no salt configured");
-        }
         sessionTracker = new SessionTracker(logger);
         telemetryClient = new TelemetryClient(config.getApiEndpoint(), config.getApiKey(), logger);
         buffer = new EventBuffer(config.getBuffer(), telemetryClient::send, logger);
@@ -112,11 +103,6 @@ public class Cartograph
         }
         logger.debug("Recording event of type: " + EventTypes.nameOf(event.type()));
         buffer.add(event);
-    }
-
-    public IpHasher getIpHasher()
-    {
-        return ipHasher;
     }
 
     public CartographLogger getLogger()

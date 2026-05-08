@@ -7,7 +7,6 @@ import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
-import java.net.InetSocketAddress;
 import java.util.UUID;
 
 /**
@@ -29,9 +28,6 @@ class PlayerJoinListener implements Listener
     {
         var logger = cartograph.getLogger();
         var player = event.getPlayer();
-        var ip = player.getSocketAddress() instanceof InetSocketAddress addr
-                 ? addr.getAddress().getHostAddress() : null;
-        var ipHash = cartograph.getIpHasher() != null ? cartograph.getIpHasher().hash(ip) : null;
 
         Boolean isFloodgate = null;
         try {
@@ -54,8 +50,7 @@ class PlayerJoinListener implements Listener
                 null,
                 player.getLocale() != null ? player.getLocale().toString() : null,
                 null,
-                isFloodgate,
-                ipHash
+                isFloodgate
         ));
         cartograph.getSessionTracker().trackJoin(player.getUniqueId());
         logger.debug("Player joined: " + player.getName() + " (" + player.getUniqueId() + "), floodgate: " + isFloodgate);

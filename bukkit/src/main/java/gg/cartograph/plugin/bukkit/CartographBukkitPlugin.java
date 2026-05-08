@@ -50,14 +50,6 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
     public void onEnable()
     {
         cartographConfig = BukkitConfigLoader.load(this);
-        if (cartographConfig.getIpHashSalt().isEmpty()) {
-            var bytes = new byte[32];
-            new java.security.SecureRandom().nextBytes(bytes);
-            var salt = java.util.HexFormat.of().formatHex(bytes);
-            cartographConfig.setIpHashSalt(salt);
-            getConfig().set("ip-hash-salt", salt);
-            saveConfig();
-        }
         cartograph = new Cartograph(cartographConfig, new JulCartographLogger(getLogger()), this::buildHeartbeat);
         cartograph.start();
         worldStats = createWorldStatsProvider();
