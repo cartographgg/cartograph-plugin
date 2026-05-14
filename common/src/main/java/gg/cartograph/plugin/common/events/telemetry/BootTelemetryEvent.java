@@ -11,8 +11,8 @@ import java.util.List;
  * Telemetry event fired once when the Cartograph plugin enables on a node.
  *
  * <p>Carries the stable-until-restart snapshot of the node: server software,
- * version info, runtime environment, configuration, installed plugins, worlds,
- * and detected feature integrations.</p>
+ * version info, runtime environment, configuration, installed plugins, and
+ * worlds.</p>
  *
  * <p>On proxy nodes ({@link NodeType#PROXY}), {@code minecraftVersion} and
  * {@code worlds} are {@code null} and excluded from the serialised payload.</p>
@@ -37,7 +37,6 @@ public record BootTelemetryEvent(
         @JsonGetter("pl") List<PluginInfo> plugins,
         @JsonGetter("bk") List<BackendInfo> backends,
         @JsonGetter("w") List<WorldInfo> worlds,
-        @JsonGetter("ft") List<String> features,
         @JsonGetter("rp") List<ResourcePackInfo> resourcePacks,
         @JsonGetter("md") List<ModInfo> mods
 ) implements TelemetryEvent

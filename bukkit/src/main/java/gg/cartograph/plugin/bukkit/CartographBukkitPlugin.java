@@ -153,7 +153,6 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
                 cartograph.shouldReportPlugins() ? plugins : null,
                 null,
                 worlds,
-                List.of(),
                 resourcePacks.isEmpty() ? null : resourcePacks,
                 null
         );
