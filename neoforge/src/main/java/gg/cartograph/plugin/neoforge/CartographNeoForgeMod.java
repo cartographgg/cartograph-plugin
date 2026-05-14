@@ -140,7 +140,6 @@ public class CartographNeoForgeMod
                 null,
                 null,
                 worldList,
-                List.of(),
                 null,
                 cartograph.shouldReportPlugins() ? mods : null
         );

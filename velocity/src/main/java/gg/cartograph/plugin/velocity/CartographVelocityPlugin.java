@@ -148,7 +148,6 @@ public class CartographVelocityPlugin
                 cartograph.shouldReportPlugins() ? plugins : null,
                 backends,
                 null,
-                List.of(),
                 null,
                 null
         );
