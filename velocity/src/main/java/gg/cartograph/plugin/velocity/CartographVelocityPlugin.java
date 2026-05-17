@@ -14,6 +14,7 @@ import gg.cartograph.plugin.common.events.BackendInfo;
 import gg.cartograph.plugin.common.events.OsInfo;
 import gg.cartograph.plugin.common.events.PluginInfo;
 import gg.cartograph.plugin.common.events.ShutdownReason;
+import gg.cartograph.plugin.common.detection.BootCapabilities;
 import gg.cartograph.plugin.common.events.telemetry.BootTelemetryEvent;
 import gg.cartograph.plugin.common.events.telemetry.HeartbeatTelemetryEvent;
 import gg.cartograph.plugin.common.events.telemetry.ShutdownTelemetryEvent;
@@ -74,7 +75,9 @@ public class CartographVelocityPlugin
         }
         cartograph = new Cartograph(cartographConfig, new Slf4jCartographLogger(logger), this::buildHeartbeat);
         cartograph.start();
-        cartograph.record(buildBootEvent());
+        server.getScheduler()
+                .buildTask(this, () -> cartograph.record(buildBootEvent()))
+                .schedule();
         server.getEventManager().register(this, new PlayerJoinListener(cartograph));
         server.getEventManager().register(this, new PlayerLeaveListener(cartograph));
     }
@@ -149,7 +152,9 @@ public class CartographVelocityPlugin
                 backends,
                 null,
                 null,
-                null
+                null,
+                BootCapabilities.detectClientVersion(cartograph.getLogger()),
+                BootCapabilities.detectBedrockSupport(cartograph.getLogger())
         );
     }
 

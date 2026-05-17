@@ -38,7 +38,9 @@ public record BootTelemetryEvent(
         @JsonGetter("bk") List<BackendInfo> backends,
         @JsonGetter("w") List<WorldInfo> worlds,
         @JsonGetter("rp") List<ResourcePackInfo> resourcePacks,
-        @JsonGetter("md") List<ModInfo> mods
+        @JsonGetter("md") List<ModInfo> mods,
+        @JsonGetter("cv") ClientVersionInfo clientVersions,
+        @JsonGetter("br") BedrockSupportInfo bedrockSupport
 ) implements TelemetryEvent
 {
     @Override

@@ -3,6 +3,7 @@ package gg.cartograph.plugin.bungeecord;
 import gg.cartograph.plugin.common.Cartograph;
 import gg.cartograph.plugin.common.NodeType;
 import gg.cartograph.plugin.common.config.CartographConfig;
+import gg.cartograph.plugin.common.detection.BootCapabilities;
 import gg.cartograph.plugin.common.events.BackendInfo;
 import gg.cartograph.plugin.common.events.OsInfo;
 import gg.cartograph.plugin.common.events.PluginInfo;
@@ -44,7 +45,12 @@ public class CartographBungeePlugin extends Plugin
         }
         cartograph = new Cartograph(cartographConfig, new JulCartographLogger(getLogger()), this::buildHeartbeat);
         cartograph.start();
-        cartograph.record(buildBootEvent());
+        getProxy().getScheduler().schedule(
+                this,
+                () -> cartograph.record(buildBootEvent()),
+                0L,
+                java.util.concurrent.TimeUnit.SECONDS
+        );
         getProxy().getPluginManager().registerListener(this, new PlayerJoinListener(cartograph));
         getProxy().getPluginManager().registerListener(this, new PlayerLeaveListener(cartograph));
     }
@@ -128,7 +134,9 @@ public class CartographBungeePlugin extends Plugin
                 backends,
                 null,
                 null,
-                null
+                null,
+                BootCapabilities.detectClientVersion(cartograph.getLogger()),
+                BootCapabilities.detectBedrockSupport(cartograph.getLogger())
         );
     }
 
