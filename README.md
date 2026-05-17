@@ -112,6 +112,8 @@ Sent once when the server starts.
 - Resource packs (if configured)
 - Installed plugins/mods (only if `report-plugins` is enabled)
 - Backend server list (proxy platforms only)
+- Supported Minecraft client protocol versions (if ViaVersion is installed)
+- Bedrock Edition support (if Geyser or Floodgate is installed)
 
 ### Heartbeat
 

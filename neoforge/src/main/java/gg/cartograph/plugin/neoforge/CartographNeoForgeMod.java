@@ -4,6 +4,7 @@ import gg.cartograph.plugin.common.Cartograph;
 import gg.cartograph.plugin.common.NodeType;
 import gg.cartograph.plugin.common.config.CartographConfig;
 import gg.cartograph.plugin.common.events.*;
+import gg.cartograph.plugin.common.detection.BootCapabilities;
 import gg.cartograph.plugin.common.events.telemetry.BootTelemetryEvent;
 import gg.cartograph.plugin.common.events.telemetry.HeartbeatTelemetryEvent;
 import gg.cartograph.plugin.common.events.telemetry.ShutdownTelemetryEvent;
@@ -15,7 +16,7 @@ import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -53,7 +54,7 @@ public class CartographNeoForgeMod
     }
 
     @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event)
+    public void onServerStarted(ServerStartedEvent event)
     {
         cartographConfig = NeoForgeConfigLoader.load();
         minecraftServer = event.getServer();
@@ -97,7 +98,7 @@ public class CartographNeoForgeMod
         );
     }
 
-    private BootTelemetryEvent buildBootEvent(ServerStartingEvent event)
+    private BootTelemetryEvent buildBootEvent(ServerStartedEvent event)
     {
         var server = event.getServer();
 
@@ -141,7 +142,9 @@ public class CartographNeoForgeMod
                 null,
                 worldList,
                 null,
-                cartograph.shouldReportPlugins() ? mods : null
+                cartograph.shouldReportPlugins() ? mods : null,
+                BootCapabilities.detectClientVersion(cartograph.getLogger()),
+                BootCapabilities.detectBedrockSupport(cartograph.getLogger())
         );
     }
 

@@ -3,6 +3,7 @@ package gg.cartograph.plugin.bukkit;
 import gg.cartograph.plugin.common.Cartograph;
 import gg.cartograph.plugin.common.NodeType;
 import gg.cartograph.plugin.common.config.CartographConfig;
+import gg.cartograph.plugin.common.detection.BootCapabilities;
 import gg.cartograph.plugin.common.events.*;
 import gg.cartograph.plugin.common.events.telemetry.BootTelemetryEvent;
 import gg.cartograph.plugin.common.events.telemetry.HeartbeatTelemetryEvent;
@@ -57,7 +58,7 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
         if (heartbeatConfig != null && heartbeatConfig.isEnabled()) {
             worldStats.start(heartbeatConfig.getInterval());
         }
-        cartograph.record(buildBootEvent());
+        getServer().getScheduler().runTask(this, () -> cartograph.record(buildBootEvent()));
         startTickSampling();
         if (!cartograph.isProxyBackend()) {
             getServer().getPluginManager().registerEvents(new PlayerJoinListener(cartograph), this);
@@ -154,7 +155,9 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
                 null,
                 worlds,
                 resourcePacks.isEmpty() ? null : resourcePacks,
-                null
+                null,
+                BootCapabilities.detectClientVersion(cartograph.getLogger()),
+                BootCapabilities.detectBedrockSupport(cartograph.getLogger())
         );
     }
 
