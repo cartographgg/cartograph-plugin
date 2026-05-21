@@ -43,7 +43,7 @@ public final class BootCapabilities
             var viaClass = Class.forName("com.viaversion.viaversion.api.Via");
             var api = viaClass.getMethod("getAPI").invoke(null);
             var versions = (java.util.SortedSet<?>) api.getClass()
-                    .getMethod("getSupportedVersions")
+                    .getMethod("getSupportedProtocolVersions")
                     .invoke(api);
             return buildClientVersion("viaversion", versions, logger);
         } catch (ClassNotFoundException e) {
