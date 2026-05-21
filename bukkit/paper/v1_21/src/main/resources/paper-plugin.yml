@@ -3,3 +3,17 @@ version: '${version}'
 main: gg.cartograph.plugin.paper.CartographPaperPlugin
 api-version: '1.21'
 description: Cartograph metrics plugin
+dependencies:
+  server:
+    ViaVersion:
+      load: BEFORE
+      required: false
+      join-classpath: true
+    Geyser-Spigot:
+      load: BEFORE
+      required: false
+      join-classpath: true
+    floodgate:
+      load: BEFORE
+      required: false
+      join-classpath: true
