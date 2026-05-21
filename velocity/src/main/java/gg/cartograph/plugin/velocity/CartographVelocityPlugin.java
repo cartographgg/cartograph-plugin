@@ -3,6 +3,7 @@ package gg.cartograph.plugin.velocity;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
+import com.velocitypowered.api.plugin.Dependency;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
@@ -41,7 +42,12 @@ import java.util.List;
         name = "Cartograph",
         version = "1.0.0-SNAPSHOT",
         description = "Cartograph metrics plugin",
-        authors = {"Cartograph"}
+        authors = {"Cartograph"},
+        dependencies = {
+                @Dependency(id = "viaversion", optional = true),
+                @Dependency(id = "geyser", optional = true),
+                @Dependency(id = "floodgate", optional = true)
+        }
 )
 public class CartographVelocityPlugin
 {
@@ -75,8 +81,14 @@ public class CartographVelocityPlugin
         }
         cartograph = new Cartograph(cartographConfig, new Slf4jCartographLogger(logger), this::buildHeartbeat);
         cartograph.start();
+        // Defer the boot event so probed plugins (ViaVersion, Geyser, Floodgate)
+        // have finished their own ProxyInitializeEvent handlers. Without this,
+        // ViaVersion.getAPI().getSupportedProtocolVersions() returns an empty
+        // set because mapping loading is still in progress, and the empty set
+        // is indistinguishable from "ViaVersion not present".
         server.getScheduler()
                 .buildTask(this, () -> cartograph.record(buildBootEvent()))
+                .delay(java.time.Duration.ofSeconds(2))
                 .schedule();
         server.getEventManager().register(this, new PlayerJoinListener(cartograph));
         server.getEventManager().register(this, new PlayerLeaveListener(cartograph));
@@ -153,9 +165,27 @@ public class CartographVelocityPlugin
                 null,
                 null,
                 null,
-                BootCapabilities.detectClientVersion(cartograph.getLogger()),
-                BootCapabilities.detectBedrockSupport(cartograph.getLogger())
+                BootCapabilities.detectClientVersion(pluginClassLoader("viaversion"), cartograph.getLogger()),
+                BootCapabilities.detectBedrockSupport(
+                        pluginClassLoader("geyser"),
+                        pluginClassLoader("floodgate"),
+                        cartograph.getLogger()
+                )
         );
+    }
+
+    /**
+     * Resolves the classloader of another Velocity plugin by id. Velocity's
+     * plugin classloaders are isolated, so capability detection in
+     * {@link BootCapabilities} can only reach sibling plugins' API classes
+     * through their own loaders.
+     */
+    private ClassLoader pluginClassLoader(String pluginId)
+    {
+        return server.getPluginManager().getPlugin(pluginId)
+                     .flatMap(PluginContainer::getInstance)
+                     .map(instance -> instance.getClass().getClassLoader())
+                     .orElse(null);
     }
 
     @Subscribe

@@ -79,9 +79,31 @@ class BootCapabilitiesTest
     }
 
     @Test
+    void detectClientVersionWithExplicitLoaderUsesItForLookup()
+    {
+        // An empty loader has no Cartograph parent visibility — ViaVersion can't
+        // be found through it either, so the result is still null silently.
+        var emptyLoader = new java.net.URLClassLoader(new java.net.URL[0], null);
+
+        var result = BootCapabilities.detectClientVersion(emptyLoader, NOOP);
+
+        assertNull(result);
+    }
+
+    @Test
     void detectBedrockSupportReturnsNullWhenNeitherPluginIsOnClasspath()
     {
         var result = BootCapabilities.detectBedrockSupport(NOOP);
+
+        assertNull(result);
+    }
+
+    @Test
+    void detectBedrockSupportWithExplicitLoadersReturnsNullWhenNeitherFound()
+    {
+        var emptyLoader = new java.net.URLClassLoader(new java.net.URL[0], null);
+
+        var result = BootCapabilities.detectBedrockSupport(emptyLoader, emptyLoader, NOOP);
 
         assertNull(result);
     }

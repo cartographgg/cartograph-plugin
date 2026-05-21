@@ -32,15 +32,27 @@ public final class BootCapabilities
     }
 
     /**
-     * Probes ViaVersion for the set of supported client protocol versions.
-     * Returns {@code null} when ViaVersion is not on the classpath, when its
-     * API surface has drifted (logged at {@code WARN}), or when its supported
-     * version set is empty.
+     * Probes ViaVersion for the set of supported client protocol versions
+     * using the caller's classloader. Suitable for platforms where Cartograph's
+     * plugin classloader can see sibling plugins (Bukkit via manifest deps,
+     * BungeeCord via shared loader pool).
      */
     public static ClientVersionInfo detectClientVersion(CartographLogger logger)
     {
+        return detectClientVersion(null, logger);
+    }
+
+    /**
+     * Probes ViaVersion using an explicit classloader. Required on platforms
+     * where each plugin runs in an isolated classloader (Velocity); the caller
+     * must resolve the ViaVersion plugin's own classloader and pass it here.
+     * A {@code null} loader falls back to {@link Class#forName(String)} (i.e.
+     * the caller's defining classloader).
+     */
+    public static ClientVersionInfo detectClientVersion(ClassLoader viaLoader, CartographLogger logger)
+    {
         try {
-            var viaClass = Class.forName("com.viaversion.viaversion.api.Via");
+            var viaClass = loadClass("com.viaversion.viaversion.api.Via", viaLoader);
             var api = viaClass.getMethod("getAPI").invoke(null);
             var versions = (java.util.SortedSet<?>) api.getClass()
                     .getMethod("getSupportedProtocolVersions")
@@ -55,13 +67,26 @@ public final class BootCapabilities
     }
 
     /**
-     * Probes Geyser and Floodgate independently. Returns {@code null} when
-     * neither plugin is on the classpath.
+     * Probes Geyser and Floodgate using the caller's classloader.
      */
     public static BedrockSupportInfo detectBedrockSupport(CartographLogger logger)
     {
-        Boolean geyser = detectGeyser(logger);
-        FloodgateResult floodgate = detectFloodgate(logger);
+        return detectBedrockSupport(null, null, logger);
+    }
+
+    /**
+     * Probes Geyser and Floodgate using explicit classloaders. See
+     * {@link #detectClientVersion(ClassLoader, CartographLogger)} for why this
+     * overload exists. Each loader may be {@code null} independently.
+     */
+    public static BedrockSupportInfo detectBedrockSupport(
+            ClassLoader geyserLoader,
+            ClassLoader floodgateLoader,
+            CartographLogger logger
+    )
+    {
+        Boolean geyser = detectGeyser(geyserLoader, logger);
+        FloodgateResult floodgate = detectFloodgate(floodgateLoader, logger);
         if (geyser == null && floodgate == null) {
             return null;
         }
@@ -72,10 +97,15 @@ public final class BootCapabilities
         );
     }
 
-    private static Boolean detectGeyser(CartographLogger logger)
+    private static Class<?> loadClass(String name, ClassLoader loader) throws ClassNotFoundException
+    {
+        return loader != null ? Class.forName(name, true, loader) : Class.forName(name);
+    }
+
+    private static Boolean detectGeyser(ClassLoader loader, CartographLogger logger)
     {
         try {
-            Class.forName("org.geysermc.geyser.api.GeyserApi");
+            loadClass("org.geysermc.geyser.api.GeyserApi", loader);
             return Boolean.TRUE;
         } catch (ClassNotFoundException e) {
             return null;
@@ -85,10 +115,10 @@ public final class BootCapabilities
         }
     }
 
-    private static FloodgateResult detectFloodgate(CartographLogger logger)
+    private static FloodgateResult detectFloodgate(ClassLoader loader, CartographLogger logger)
     {
         try {
-            var floodgateClass = Class.forName("org.geysermc.floodgate.api.FloodgateApi");
+            var floodgateClass = loadClass("org.geysermc.floodgate.api.FloodgateApi", loader);
             var api = floodgateClass.getMethod("getInstance").invoke(null);
             var prefix = (String) api.getClass().getMethod("getPlayerPrefix").invoke(api);
             return new FloodgateResult(prefix);
