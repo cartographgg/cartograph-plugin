@@ -135,9 +135,27 @@ public class CartographBungeePlugin extends Plugin
                 null,
                 null,
                 null,
-                BootCapabilities.detectClientVersion(cartograph.getLogger()),
-                BootCapabilities.detectBedrockSupport(cartograph.getLogger())
+                BootCapabilities.detectClientVersion(pluginClassLoader("ViaVersion"), cartograph.getLogger()),
+                BootCapabilities.detectBedrockSupport(
+                        pluginClassLoader("Geyser-BungeeCord"),
+                        pluginClassLoader("floodgate"),
+                        cartograph.getLogger()
+                )
         );
+    }
+
+    /**
+     * Resolves the classloader of another BungeeCord plugin by name. The
+     * default plugin classloader pool only sees classes from plugins
+     * BungeeCord itself loaded — it cannot see classes that a loader plugin
+     * (e.g. ViaBungee) loaded into its own internal {@code URLClassLoader}
+     * from a subdirectory. Going through the named plugin's instance
+     * classloader is the only path that sees those classes.
+     */
+    private ClassLoader pluginClassLoader(String pluginName)
+    {
+        var plugin = getProxy().getPluginManager().getPlugin(pluginName);
+        return plugin != null ? plugin.getClass().getClassLoader() : null;
     }
 
     public CartographConfig getCartographConfig()

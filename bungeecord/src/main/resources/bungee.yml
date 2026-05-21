@@ -2,3 +2,11 @@ name: Cartograph
 version: '${version}'
 main: gg.cartograph.plugin.bungeecord.CartographBungeePlugin
 description: Cartograph metrics plugin
+# soft-depends on the third-party plugins BootCapabilities probes so that
+# Cartograph's onEnable runs after they have themselves been enabled and
+# their plugin instances are reachable via getPluginManager().getPlugin(...).
+# On Bungee, ViaVersion is the plugin name registered by the ViaBungee loader.
+softDepends:
+  - ViaVersion
+  - Geyser-BungeeCord
+  - floodgate
