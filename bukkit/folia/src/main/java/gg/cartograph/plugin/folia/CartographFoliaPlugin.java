@@ -12,6 +12,8 @@ import org.bukkit.Bukkit;
  * <ul>
  *   <li>world-stats sampling — uses the global region scheduler instead of
  *       the main-thread Bukkit scheduler;</li>
+ *   <li>boot-event dispatch — Folia rejects the legacy {@code BukkitScheduler.runTask}
+ *       API, so we hand the one-shot off to the global region scheduler;</li>
  *   <li>tick sampling — Folia rejects the legacy {@code BukkitScheduler.runTaskTimer}
  *       API, so we sample on the global region scheduler at a 1-tick interval.</li>
  * </ul>
@@ -29,6 +31,12 @@ public class CartographFoliaPlugin extends CartographBukkitPlugin
     protected WorldStatsProvider createWorldStatsProvider()
     {
         return new FoliaWorldStatsProvider(this);
+    }
+
+    @Override
+    protected void scheduleBootEvent(Runnable task)
+    {
+        Bukkit.getGlobalRegionScheduler().run(this, t -> task.run());
     }
 
     @Override

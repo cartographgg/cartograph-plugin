@@ -58,7 +58,7 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
         if (heartbeatConfig != null && heartbeatConfig.isEnabled()) {
             worldStats.start(heartbeatConfig.getInterval());
         }
-        getServer().getScheduler().runTask(this, () -> cartograph.record(buildBootEvent()));
+        scheduleBootEvent(() -> cartograph.record(buildBootEvent()));
         startTickSampling();
         if (!cartograph.isProxyBackend()) {
             getServer().getPluginManager().registerEvents(new PlayerJoinListener(cartograph), this);
@@ -159,6 +159,17 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
                 BootCapabilities.detectClientVersion(cartograph.getLogger()),
                 BootCapabilities.detectBedrockSupport(cartograph.getLogger())
         );
+    }
+
+    /**
+     * Schedules the one-shot boot-event dispatch. Default uses the Bukkit
+     * scheduler's {@code runTask}, which Folia rejects with
+     * {@code UnsupportedOperationException} — Folia overrides this to dispatch
+     * via the global region scheduler.
+     */
+    protected void scheduleBootEvent(Runnable task)
+    {
+        getServer().getScheduler().runTask(this, task);
     }
 
     /**
