@@ -5,7 +5,9 @@ import com.velocitypowered.api.event.connection.PostLoginEvent;
 import gg.cartograph.plugin.common.Cartograph;
 import gg.cartograph.plugin.common.events.telemetry.PlayerJoinTelemetryEvent;
 import gg.cartograph.plugin.common.logging.CartographLogger;
+import gg.cartograph.plugin.common.util.Hostnames;
 
+import java.net.InetSocketAddress;
 import java.util.UUID;
 
 /**
@@ -41,6 +43,11 @@ class PlayerJoinListener
             logger.debug("Floodgate API not available");
         }
 
+        var hostname = player.getVirtualHost()
+                .map(InetSocketAddress::getHostString)
+                .map(Hostnames::normalize)
+                .orElse(null);
+
         cartograph.record(new PlayerJoinTelemetryEvent(
                 System.currentTimeMillis(),
                 player.getUniqueId(),
@@ -49,7 +56,8 @@ class PlayerJoinListener
                 player.getProtocolVersion().getProtocol(),
                 player.getEffectiveLocale() != null ? player.getEffectiveLocale().toString() : null,
                 null,
-                isFloodgate
+                isFloodgate,
+                hostname
         ));
         cartograph.getSessionTracker().trackJoin(player.getUniqueId());
         logger.debug("Player joined: " + player.getUsername() + " (" + player.getUniqueId() + "), floodgate: " + isFloodgate);

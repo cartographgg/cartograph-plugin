@@ -133,6 +133,7 @@ Sent periodically (default every 60 seconds).
 - Player UUID and username
 - Whether the player is new (first join)
 - Player locale
+- Connection hostname (the address the player used to connect)
 - Current world
 - Whether the player connected via Floodgate (Bedrock Edition bridge)
 

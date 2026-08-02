@@ -61,7 +61,9 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
         scheduleBootEvent(() -> cartograph.record(buildBootEvent()));
         startTickSampling();
         if (!cartograph.isProxyBackend()) {
-            getServer().getPluginManager().registerEvents(new PlayerJoinListener(cartograph), this);
+            var hostnameStash = new PlayerHostnameStash();
+            getServer().getPluginManager().registerEvents(new PlayerLoginListener(hostnameStash), this);
+            getServer().getPluginManager().registerEvents(new PlayerJoinListener(cartograph, hostnameStash), this);
             getServer().getPluginManager().registerEvents(new PlayerLeaveListener(cartograph), this);
         }
     }

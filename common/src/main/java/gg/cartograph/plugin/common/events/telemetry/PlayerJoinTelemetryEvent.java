@@ -25,6 +25,7 @@ import java.util.UUID;
  * @param locale    the client's locale (e.g. {@code en_GB}), or null if not yet known
  * @param world     the world the player spawned into, or null on proxy nodes
  * @param bedrock   true if the player connected via Floodgate (Bedrock Edition)
+ * @param hostname  the normalized virtual host the client used to connect, or null if unavailable
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record PlayerJoinTelemetryEvent(
@@ -35,7 +36,8 @@ public record PlayerJoinTelemetryEvent(
         @JsonGetter("pr") Integer protocol,
         @JsonGetter("lo") String locale,
         @JsonGetter("w") String world,
-        @JsonGetter("be") Boolean bedrock
+        @JsonGetter("be") Boolean bedrock,
+        @JsonGetter("hn") String hostname
 ) implements TelemetryEvent
 {
     @Override

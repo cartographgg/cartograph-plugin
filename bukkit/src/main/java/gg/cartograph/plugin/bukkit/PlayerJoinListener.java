@@ -16,10 +16,12 @@ class PlayerJoinListener implements Listener
 {
 
     private final Cartograph cartograph;
+    private final PlayerHostnameStash stash;
 
-    PlayerJoinListener(Cartograph cartograph)
+    PlayerJoinListener(Cartograph cartograph, PlayerHostnameStash stash)
     {
         this.cartograph = cartograph;
+        this.stash = stash;
     }
 
     @EventHandler
@@ -41,6 +43,8 @@ class PlayerJoinListener implements Listener
             logger.debug("Floodgate API not available");
         }
 
+        var hostname = stash.take(player.getUniqueId());
+
         cartograph.record(new PlayerJoinTelemetryEvent(
                 System.currentTimeMillis(),
                 player.getUniqueId(),
@@ -49,7 +53,8 @@ class PlayerJoinListener implements Listener
                 null,
                 player.getLocale(),
                 player.getWorld().getName(),
-                isFloodgate
+                isFloodgate,
+                hostname
         ));
         cartograph.getSessionTracker().trackJoin(player.getUniqueId());
         logger.debug("Player joined: " + player.getName() + " (" + player.getUniqueId() + "), floodgate: " + isFloodgate);

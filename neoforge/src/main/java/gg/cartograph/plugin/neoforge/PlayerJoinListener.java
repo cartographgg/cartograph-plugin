@@ -58,7 +58,9 @@ class PlayerJoinListener
                 null,
                 serverPlayer.clientInformation().language(),
                 serverPlayer.level().dimension().location().toString(),
-                isFloodgate
+                isFloodgate,
+                // hostname: handshake capture deferred to the NeoForge follow-up spec
+                null
         ));
         cartograph.getSessionTracker().trackJoin(player.getUUID());
         logger.debug("Player joined: " + player.getGameProfile().getName() + " (" + player.getUUID() + "), floodgate: " + isFloodgate);

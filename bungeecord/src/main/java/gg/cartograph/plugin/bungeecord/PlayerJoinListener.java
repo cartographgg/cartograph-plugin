@@ -3,6 +3,7 @@ package gg.cartograph.plugin.bungeecord;
 import gg.cartograph.plugin.common.Cartograph;
 import gg.cartograph.plugin.common.events.telemetry.PlayerJoinTelemetryEvent;
 import gg.cartograph.plugin.common.logging.CartographLogger;
+import gg.cartograph.plugin.common.util.Hostnames;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
@@ -42,6 +43,9 @@ class PlayerJoinListener implements Listener
             logger.debug("Floodgate API not available");
         }
 
+        var virtualHost = player.getPendingConnection().getVirtualHost();
+        var hostname    = virtualHost != null ? Hostnames.normalize(virtualHost.getHostString()) : null;
+
         cartograph.record(new PlayerJoinTelemetryEvent(
                 System.currentTimeMillis(),
                 player.getUniqueId(),
@@ -50,7 +54,8 @@ class PlayerJoinListener implements Listener
                 null,
                 player.getLocale() != null ? player.getLocale().toString() : null,
                 null,
-                isFloodgate
+                isFloodgate,
+                hostname
         ));
         cartograph.getSessionTracker().trackJoin(player.getUniqueId());
         logger.debug("Player joined: " + player.getName() + " (" + player.getUniqueId() + "), floodgate: " + isFloodgate);
