@@ -186,5 +186,7 @@ class CartographTest
         assertTrue(messages.stream().anyMatch(m -> m.contains("plugin-reporting=on")));
         assertTrue(messages.stream().anyMatch(m -> m.contains("heartbeat=60s")));
         assertTrue(messages.stream().anyMatch(m -> m.contains("report-plugins")));
+        assertTrue(messages.stream().anyMatch(m -> m.contains("once an API key is configured")));
+        assertTrue(messages.stream().noneMatch(m -> m.contains("is now sending")));
     }
 }

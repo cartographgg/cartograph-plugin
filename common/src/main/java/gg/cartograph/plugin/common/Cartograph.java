@@ -76,7 +76,8 @@ public class Cartograph
                 + ", heartbeat=" + hb);
 
         if (config.isFirstRun()) {
-            logger.info("Cartograph is now sending anonymous telemetry to " + config.getApiEndpoint() + ".");
+            logger.info("Cartograph will send anonymous telemetry to " + config.getApiEndpoint()
+                    + " once an API key is configured.");
             logger.info("Plugin reporting (report-plugins) is ON by default — set it to false in the Cartograph "
                     + "config to opt out.");
             logger.info("Everything collected is controlled by your config file; see the Cartograph docs.");

@@ -16,7 +16,7 @@ import java.util.List;
  * performance scoring and dashboard display.</p>
  *
  * <p>On proxy nodes, the server-specific fields ({@code tps}, {@code peakTickTime},
- * {@code chunksLoaded}, {@code entitiesLoaded}) are
+ * {@code p50}, {@code p95}, {@code p99}, {@code chunksLoaded}, {@code entitiesLoaded}) are
  * {@code null} and omitted from the payload. {@code playerCount} on a proxy
  * is the proxy-wide aggregate across all backends.</p>
  *
