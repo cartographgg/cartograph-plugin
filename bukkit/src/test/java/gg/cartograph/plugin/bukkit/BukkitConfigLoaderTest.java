@@ -92,13 +92,13 @@ class BukkitConfigLoaderTest
     {
         var yaml = new YamlConfiguration();
         yaml.set("telemetry.chunk-loads.enabled", true);
-        yaml.set("telemetry.chunk-loads.interval", 15);
+        yaml.set("telemetry.chunk-loads.interval", 45);
 
         var config = BukkitConfigLoader.fromSection(yaml);
 
         assertTrue(config.getTelemetry().containsKey("chunk-loads"));
         var chunkLoads = config.getTelemetry().get("chunk-loads");
         assertTrue(chunkLoads.isEnabled());
-        assertEquals(15, chunkLoads.getInterval());
+        assertEquals(45, chunkLoads.getInterval());
     }
 }
