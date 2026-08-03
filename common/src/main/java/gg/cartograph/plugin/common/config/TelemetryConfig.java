@@ -12,6 +12,9 @@ package gg.cartograph.plugin.common.config;
 public class TelemetryConfig
 {
 
+    static final int MIN_INTERVAL = 30;
+    static final int MAX_INTERVAL = 300;
+
     private boolean enabled = true;
 
     private int interval = 60;
@@ -33,6 +36,6 @@ public class TelemetryConfig
 
     public void setInterval(int interval)
     {
-        this.interval = interval;
+        this.interval = Math.max(MIN_INTERVAL, Math.min(MAX_INTERVAL, interval));
     }
 }

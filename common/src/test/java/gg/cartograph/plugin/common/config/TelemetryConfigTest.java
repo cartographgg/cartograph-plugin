@@ -26,4 +26,28 @@ class TelemetryConfigTest
         assertFalse(config.isEnabled());
         assertEquals(30, config.getInterval());
     }
+
+    @Test
+    void intervalClampedToMinimum()
+    {
+        var config = new TelemetryConfig();
+        config.setInterval(5);
+        assertEquals(30, config.getInterval());
+    }
+
+    @Test
+    void intervalClampedToMaximum()
+    {
+        var config = new TelemetryConfig();
+        config.setInterval(600);
+        assertEquals(300, config.getInterval());
+    }
+
+    @Test
+    void intervalWithinRangeUnchanged()
+    {
+        var config = new TelemetryConfig();
+        config.setInterval(120);
+        assertEquals(120, config.getInterval());
+    }
 }
