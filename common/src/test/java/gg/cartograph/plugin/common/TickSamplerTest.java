@@ -94,4 +94,35 @@ class TickSamplerTest
         assertEquals(20.0, tps[1]);
         assertEquals(20.0, tps[2]);
     }
+
+    @Test
+    void percentilesOverHundredSamples()
+    {
+        for (int i = 1; i <= 100; i++) {
+            sampler.recordTick(i);
+        }
+        var p = sampler.getPercentiles();
+
+        assertEquals(50.0, p.p50());
+        assertEquals(95.0, p.p95());
+        assertEquals(99.0, p.p99());
+        assertEquals(100.0, p.max());
+    }
+
+    @Test
+    void percentilesEmptyReturnsZero()
+    {
+        var p = sampler.getPercentiles();
+        assertEquals(0.0, p.p50());
+        assertEquals(0.0, p.max());
+    }
+
+    @Test
+    void percentilesResetClears()
+    {
+        sampler.recordTick(500.0);
+        sampler.reset();
+        var p = sampler.getPercentiles();
+        assertEquals(0.0, p.max());
+    }
 }

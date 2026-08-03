@@ -16,13 +16,22 @@ public class TickSampler
 
     private static final double[] TPS_WINDOWS = {60.0, 300.0, 900.0};
 
+    // ~6.8 min at 20 TPS; bounds memory if the heartbeat is ever disabled (reset never called).
+    private static final int MAX_SAMPLES = 8192;
+
     private final double[] tpsAverages = {20.0, 20.0, 20.0};
+
+    private final double[] samples = new double[MAX_SAMPLES];
 
     private double sum;
 
     private double peak;
 
     private int count;
+
+    private int sampleCount;
+
+    private int writeIndex;
 
     private long lastTpsUpdate;
 
@@ -39,6 +48,12 @@ public class TickSampler
         count++;
         if (milliseconds > peak) {
             peak = milliseconds;
+        }
+
+        samples[writeIndex] = milliseconds;
+        writeIndex = (writeIndex + 1) % MAX_SAMPLES;
+        if (sampleCount < MAX_SAMPLES) {
+            sampleCount++;
         }
 
         ticksSinceLastUpdate++;
@@ -78,10 +93,39 @@ public class TickSampler
         return peak;
     }
 
+    public synchronized TickPercentiles getPercentiles()
+    {
+        if (sampleCount == 0) {
+            return new TickPercentiles(0.0, 0.0, 0.0, 0.0);
+        }
+        var sorted = java.util.Arrays.copyOf(samples, sampleCount);
+        java.util.Arrays.sort(sorted);
+        return new TickPercentiles(
+                percentile(sorted, 50),
+                percentile(sorted, 95),
+                percentile(sorted, 99),
+                sorted[sorted.length - 1]
+        );
+    }
+
+    private static double percentile(double[] sorted, int p)
+    {
+        var idx = (int) Math.ceil(p / 100.0 * sorted.length) - 1;
+        if (idx < 0) {
+            idx = 0;
+        }
+        if (idx >= sorted.length) {
+            idx = sorted.length - 1;
+        }
+        return sorted[idx];
+    }
+
     public synchronized void reset()
     {
-        sum   = 0.0;
-        peak  = 0.0;
-        count = 0;
+        sum         = 0.0;
+        peak        = 0.0;
+        count       = 0;
+        sampleCount = 0;
+        writeIndex  = 0;
     }
 }
