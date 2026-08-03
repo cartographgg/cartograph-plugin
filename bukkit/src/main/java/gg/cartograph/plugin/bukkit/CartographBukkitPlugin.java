@@ -86,26 +86,30 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
         var osBean = (com.sun.management.OperatingSystemMXBean)
                 ManagementFactory.getOperatingSystemMXBean();
 
-        var meanTick = cartograph.getTickSampler().getMeanTickTime();
-        var peakTick = cartograph.getTickSampler().getPeakTickTime();
+        var pct = cartograph.getTickSampler().getPercentiles();
         cartograph.getTickSampler().reset();
+
+        var heartbeat = cartographConfig.getTelemetry().get("heartbeat");
+        var interval  = heartbeat != null ? heartbeat.getInterval() : null;
 
         var stats = worldStats.snapshot();
 
         return new HeartbeatTelemetryEvent(
                 System.currentTimeMillis(),
                 getTps(),
-                meanTick,
-                peakTick,
+                pct.max(),
                 server.getOnlinePlayers().size(),
                 runtime.totalMemory() - runtime.freeMemory(),
                 runtime.maxMemory(),
                 osBean.getProcessCpuLoad(),
                 osBean.getCpuLoad(),
-                Thread.activeCount(),
                 stats.chunksLoaded(),
                 stats.entitiesLoaded(),
-                stats.notableWorlds().isEmpty() ? null : stats.notableWorlds()
+                stats.notableWorlds().isEmpty() ? null : stats.notableWorlds(),
+                pct.p50(),
+                pct.p95(),
+                pct.p99(),
+                interval
         );
     }
 

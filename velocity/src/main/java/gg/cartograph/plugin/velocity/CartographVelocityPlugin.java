@@ -100,9 +100,11 @@ public class CartographVelocityPlugin
         var osBean = (com.sun.management.OperatingSystemMXBean)
                 ManagementFactory.getOperatingSystemMXBean();
 
+        var heartbeat = cartographConfig.getTelemetry().get("heartbeat");
+        var interval  = heartbeat != null ? heartbeat.getInterval() : null;
+
         return new HeartbeatTelemetryEvent(
                 System.currentTimeMillis(),
-                null,
                 null,
                 null,
                 server.getPlayerCount(),
@@ -110,10 +112,13 @@ public class CartographVelocityPlugin
                 runtime.maxMemory(),
                 osBean.getProcessCpuLoad(),
                 osBean.getCpuLoad(),
-                Thread.activeCount(),
                 null,
                 null,
-                null
+                null,
+                null,
+                null,
+                null,
+                interval
         );
     }
 

@@ -4,8 +4,8 @@ package gg.cartograph.plugin.common;
  * Thread-safe accumulator for server tick durations and TPS calculation.
  *
  * <p>Server platforms feed tick durations via {@link #recordTick(double)}. The heartbeat
- * supplier reads {@link #getMeanTickTime()} and {@link #getPeakTickTime()}, then calls
- * {@link #reset()} to begin accumulating for the next interval.</p>
+ * supplier reads {@link #getPercentiles()}, then calls {@link #reset()} to begin
+ * accumulating for the next interval.</p>
  *
  * <p>TPS is calculated using exponential moving averages over 1-minute, 5-minute, and
  * 15-minute windows — the same algorithm used internally by Minecraft servers. Call
@@ -23,12 +23,6 @@ public class TickSampler
 
     private final double[] samples = new double[MAX_SAMPLES];
 
-    private double sum;
-
-    private double peak;
-
-    private int count;
-
     private int sampleCount;
 
     private int writeIndex;
@@ -44,12 +38,6 @@ public class TickSampler
 
     public synchronized void recordTick(double milliseconds)
     {
-        sum += milliseconds;
-        count++;
-        if (milliseconds > peak) {
-            peak = milliseconds;
-        }
-
         samples[writeIndex] = milliseconds;
         writeIndex = (writeIndex + 1) % MAX_SAMPLES;
         if (sampleCount < MAX_SAMPLES) {
@@ -78,19 +66,6 @@ public class TickSampler
     public synchronized double[] getTps()
     {
         return new double[] {tpsAverages[0], tpsAverages[1], tpsAverages[2]};
-    }
-
-    public synchronized double getMeanTickTime()
-    {
-        if (count == 0) {
-            return 0.0;
-        }
-        return sum / count;
-    }
-
-    public synchronized double getPeakTickTime()
-    {
-        return peak;
     }
 
     public synchronized TickPercentiles getPercentiles()
@@ -122,9 +97,6 @@ public class TickSampler
 
     public synchronized void reset()
     {
-        sum         = 0.0;
-        peak        = 0.0;
-        count       = 0;
         sampleCount = 0;
         writeIndex  = 0;
     }

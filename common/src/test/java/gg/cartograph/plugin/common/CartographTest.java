@@ -32,7 +32,8 @@ class CartographTest
         config.getBuffer().setTimeThreshold(60);
         logger            = mock(CartographLogger.class);
         heartbeatSupplier = () -> new HeartbeatTelemetryEvent(
-                System.currentTimeMillis(), null, null, null, 0, 0L, 0L, 0.0, 0.0, 0, null, null, null
+                System.currentTimeMillis(), null, null, 0, 0L, 0L, 0.0, 0.0, null, null, null,
+                null, null, null, null
         );
         cartograph        = new Cartograph(config, logger, heartbeatSupplier);
     }
