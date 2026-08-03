@@ -51,7 +51,7 @@ class PlayerJoinListener implements Listener
                 player.getUniqueId(),
                 player.getName(),
                 null,
-                null,
+                player.getPendingConnection().getVersion(),
                 player.getLocale() != null ? player.getLocale().toString() : null,
                 null,
                 isFloodgate,
