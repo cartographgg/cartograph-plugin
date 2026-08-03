@@ -122,12 +122,7 @@ public class CartographNeoForgeMod
                 neoforgeVersion,
                 server.getServerVersion(),
                 System.getProperty("java.version"),
-                System.getProperty("java.vendor"),
-                new OsInfo(
-                        System.getProperty("os.name"),
-                        System.getProperty("os.version"),
-                        System.getProperty("os.arch")
-                ),
+                new OsInfo(System.getProperty("os.name"), System.getProperty("os.arch")),
                 ModList.get().getModContainerById("cartograph")
                        .map(c -> c.getModInfo().getVersion().toString())
                        .orElse("unknown"),
@@ -137,11 +132,9 @@ public class CartographNeoForgeMod
                 server.getPlayerList().getSimulationDistance(),
                 server.usesAuthentication(),
                 null,
-                server.getMotd(),
                 null,
                 null,
                 worldList,
-                null,
                 cartograph.shouldReportPlugins() ? mods : null,
                 BootCapabilities.detectClientVersion(cartograph.getLogger()),
                 BootCapabilities.detectBedrockSupport(cartograph.getLogger())

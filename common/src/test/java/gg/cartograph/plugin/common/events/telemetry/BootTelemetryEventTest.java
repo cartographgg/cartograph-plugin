@@ -21,29 +21,22 @@ class BootTelemetryEventTest
     private BootTelemetryEvent eventWithCapabilities(ClientVersionInfo cv, BedrockSupportInfo br)
     {
         return new BootTelemetryEvent(
-                1000L,
-                "Paper",
-                "1.21.1-R0.1-SNAPSHOT",
-                "1.21.1",
-                "21.0.1",
-                "Eclipse Adoptium",
-                new OsInfo("Linux", "6.5.0", "amd64"),
-                "1.0.0-SNAPSHOT",
-                NodeType.STANDALONE,
-                20,
-                10,
-                10,
-                true,
-                false,
-                "A Minecraft Server",
-                null,
-                null,
-                null,
-                null,
-                null,
-                cv,
-                br
+                1000L, "Paper", "1.21.1-R0.1-SNAPSHOT", "1.21.1", "21.0.1",
+                new OsInfo("Linux", "amd64"),
+                "1.0.0-SNAPSHOT", NodeType.STANDALONE, 20, 10, 10, true, false,
+                null, null, null, null, cv, br
         );
+    }
+
+    @Test
+    void droppedFieldsAreAbsent() throws Exception
+    {
+        var json = mapper.writeValueAsString(eventWithCapabilities(null, null));
+
+        assertFalse(json.contains("\"jr\""));
+        assertFalse(json.contains("\"mo\""));
+        assertFalse(json.contains("\"rp\""));
+        assertFalse(json.contains("\"v\"")); // OsInfo version key
     }
 
     @Test

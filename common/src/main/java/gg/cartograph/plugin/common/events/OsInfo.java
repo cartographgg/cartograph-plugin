@@ -7,7 +7,6 @@ import com.fasterxml.jackson.annotation.JsonGetter;
  */
 public record OsInfo(
         @JsonGetter("n") String name,
-        @JsonGetter("v") String version,
         @JsonGetter("a") String arch
 )
 {

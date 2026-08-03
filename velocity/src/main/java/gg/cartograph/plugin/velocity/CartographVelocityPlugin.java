@@ -144,12 +144,7 @@ public class CartographVelocityPlugin
                 version.getVersion(),
                 null,
                 System.getProperty("java.version"),
-                System.getProperty("java.vendor"),
-                new OsInfo(
-                        System.getProperty("os.name"),
-                        System.getProperty("os.version"),
-                        System.getProperty("os.arch")
-                ),
+                new OsInfo(System.getProperty("os.name"), System.getProperty("os.arch")),
                 server.getPluginManager().getPlugin("cartograph")
                       .flatMap(p -> p.getDescription().getVersion())
                       .orElse("unknown"),
@@ -159,10 +154,8 @@ public class CartographVelocityPlugin
                 null,
                 server.getConfiguration().isOnlineMode(),
                 null,
-                null,
                 cartograph.shouldReportPlugins() ? plugins : null,
                 backends,
-                null,
                 null,
                 null,
                 BootCapabilities.detectClientVersion(pluginClassLoader("viaversion"), cartograph.getLogger()),

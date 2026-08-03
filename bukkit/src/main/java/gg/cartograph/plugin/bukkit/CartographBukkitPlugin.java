@@ -121,30 +121,13 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
                            .map(w -> new WorldInfo(w.getName(), w.getEnvironment().name().toLowerCase()))
                            .toList();
 
-        var resourcePacks = new java.util.ArrayList<ResourcePackInfo>();
-        @SuppressWarnings("deprecation") var rpUrl = server.getResourcePack();
-        if (rpUrl != null && !rpUrl.isEmpty()) {
-            @SuppressWarnings("deprecation") var rpHash = server.getResourcePackHash();
-            resourcePacks.add(new ResourcePackInfo(
-                    rpUrl,
-                    rpHash.isEmpty() ? null : rpHash,
-                    server.isResourcePackRequired(),
-                    null
-            ));
-        }
-
         return new BootTelemetryEvent(
                 System.currentTimeMillis(),
                 server.getName(),
                 server.getVersion(),
                 server.getBukkitVersion(),
                 System.getProperty("java.version"),
-                System.getProperty("java.vendor"),
-                new OsInfo(
-                        System.getProperty("os.name"),
-                        System.getProperty("os.version"),
-                        System.getProperty("os.arch")
-                ),
+                new OsInfo(System.getProperty("os.name"), System.getProperty("os.arch")),
                 getDescription().getVersion(),
                 detectNodeType(),
                 server.getMaxPlayers(),
@@ -152,11 +135,9 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
                 server.getSimulationDistance(),
                 server.getOnlineMode(),
                 server.hasWhitelist(),
-                server.getMotd(),
                 cartograph.shouldReportPlugins() ? plugins : null,
                 null,
                 worlds,
-                resourcePacks.isEmpty() ? null : resourcePacks,
                 null,
                 BootCapabilities.detectClientVersion(cartograph.getLogger()),
                 BootCapabilities.detectBedrockSupport(cartograph.getLogger())
