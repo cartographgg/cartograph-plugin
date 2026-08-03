@@ -22,6 +22,15 @@ public class NeoForgeConfigLoader
     /** The built config spec, registered with NeoForge in {@link CartographNeoForgeMod}. */
     public static final ModConfigSpec SPEC;
 
+    /**
+     * Best-effort capture of whether the backing TOML config file already existed on
+     * disk before this spec was built. NeoForge does not expose first-run state
+     * directly, so this checks the conventional config path
+     * ({@code config/cartograph-common.toml}) at class-init time, before the config
+     * tracker gets a chance to write the default file to disk.
+     */
+    private static final boolean FIRST_RUN;
+
     private static final ModConfigSpec.ConfigValue<String> API_KEY;
 
     private static final ModConfigSpec.ConfigValue<String> API_ENDPOINT;
@@ -42,6 +51,8 @@ public class NeoForgeConfigLoader
 
 
     static {
+        FIRST_RUN = !configFileExistsBestEffort();
+
         var builder = new ModConfigSpec.Builder();
 
         API_KEY = builder
@@ -100,6 +111,25 @@ public class NeoForgeConfigLoader
     }
 
     /**
+     * Best-effort check for whether the mod's TOML file already exists at NeoForge's
+     * conventional config path ({@code <modid>-common.toml} under the config
+     * directory), before the config tracker writes the default file to disk. Falls
+     * back to {@code true} (i.e. not first-run) if the path cannot be determined, so
+     * a failure here never spams the first-run disclosure notice.
+     *
+     * @return {@code true} if the config file already existed, {@code false} otherwise
+     */
+    private static boolean configFileExistsBestEffort()
+    {
+        try {
+            var path = net.neoforged.fml.loading.FMLPaths.CONFIGDIR.get().resolve("cartograph-common.toml");
+            return java.nio.file.Files.exists(path);
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
+    /**
      * Reads the current values from the NeoForge config spec and returns a populated
      * {@link CartographConfig}. Should only be called after NeoForge has loaded the
      * TOML config file (i.e. during or after the server start event).
@@ -127,6 +157,7 @@ public class NeoForgeConfigLoader
         heartbeat.setInterval(HEARTBEAT_INTERVAL.get());
         config.getTelemetry().put("heartbeat", heartbeat);
 
+        config.setFirstRun(FIRST_RUN);
 
         return config;
     }

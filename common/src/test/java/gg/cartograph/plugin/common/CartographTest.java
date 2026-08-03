@@ -164,4 +164,27 @@ class CartographTest
         assertNotNull(sampler);
         assertSame(sampler, cartograph.getTickSampler());
     }
+
+    @Test
+    void discloseLogsStatusAndFirstRunNotice()
+    {
+        var messages = new java.util.ArrayList<String>();
+        var logger = new gg.cartograph.plugin.common.logging.CartographLogger() {
+            public void debug(String m) {}
+            public void info(String m)  { messages.add(m); }
+            public void warn(String m)  {}
+            public void error(String m) {}
+            public void error(String m, Throwable t) {}
+        };
+
+        var config = CartographConfig.defaults();
+        config.setFirstRun(true);
+        var cartograph = new Cartograph(config, logger, () -> null);
+
+        cartograph.disclose();
+
+        assertTrue(messages.stream().anyMatch(m -> m.contains("plugin-reporting=on")));
+        assertTrue(messages.stream().anyMatch(m -> m.contains("heartbeat=60s")));
+        assertTrue(messages.stream().anyMatch(m -> m.contains("report-plugins")));
+    }
 }

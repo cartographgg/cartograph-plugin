@@ -44,14 +44,19 @@ public class VelocityConfigLoader
 
         var configPath = dataDirectory.resolve("config.yml");
 
+        boolean firstRun;
         if (!Files.exists(configPath)) {
             // Copy the default config bundled in the JAR to the plugin's data directory
             try (var in = VelocityConfigLoader.class.getResourceAsStream("/config.yml")) {
                 Files.copy(in, configPath);
             }
+            firstRun = true;
+        } else {
+            firstRun = false;
         }
 
         var config = CartographConfig.defaults();
+        config.setFirstRun(firstRun);
 
         // SnakeYAML returns null for empty files
         Map<String, Object> data;

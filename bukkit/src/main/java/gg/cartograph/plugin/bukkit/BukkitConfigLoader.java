@@ -26,8 +26,11 @@ public class BukkitConfigLoader
      */
     public static CartographConfig load(CartographBukkitPlugin plugin)
     {
+        var firstRun = !new java.io.File(plugin.getDataFolder(), "config.yml").exists();
         plugin.saveDefaultConfig();
-        return fromSection(plugin.getConfig());
+        var config = fromSection(plugin.getConfig());
+        config.setFirstRun(firstRun);
+        return config;
     }
 
     /**

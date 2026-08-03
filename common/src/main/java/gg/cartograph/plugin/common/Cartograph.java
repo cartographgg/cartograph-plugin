@@ -61,6 +61,26 @@ public class Cartograph
         buffer.start();
         startHeartbeat();
         logger.info("Cartograph started");
+        disclose();
+    }
+
+    /**
+     * Logs a one-line collection status summary on every boot, plus a first-run
+     * disclosure notice when {@link CartographConfig#isFirstRun()} is set.
+     */
+    void disclose()
+    {
+        var heartbeat = config.getTelemetry().get("heartbeat");
+        var hb = (heartbeat != null && heartbeat.isEnabled()) ? heartbeat.getInterval() + "s" : "off";
+        logger.info("Cartograph collection: plugin-reporting=" + (shouldReportPlugins() ? "on" : "off")
+                + ", heartbeat=" + hb);
+
+        if (config.isFirstRun()) {
+            logger.info("Cartograph is now sending anonymous telemetry to " + config.getApiEndpoint() + ".");
+            logger.info("Plugin reporting (report-plugins) is ON by default — set it to false in the Cartograph "
+                    + "config to opt out.");
+            logger.info("Everything collected is controlled by your config file; see the Cartograph docs.");
+        }
     }
 
     private void startHeartbeat()

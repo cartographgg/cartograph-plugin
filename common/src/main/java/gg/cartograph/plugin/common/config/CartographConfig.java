@@ -42,6 +42,8 @@ public class CartographConfig
 
     private Map<String, TelemetryConfig> telemetry = new LinkedHashMap<>();
 
+    private boolean firstRun = false;
+
     /**
      * Creates a new configuration pre-populated with sensible defaults.
      *
@@ -116,5 +118,15 @@ public class CartographConfig
     public void setTelemetry(Map<String, TelemetryConfig> telemetry)
     {
         this.telemetry = telemetry;
+    }
+
+    public boolean isFirstRun()
+    {
+        return firstRun;
+    }
+
+    public void setFirstRun(boolean firstRun)
+    {
+        this.firstRun = firstRun;
     }
 }

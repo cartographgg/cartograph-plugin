@@ -41,15 +41,21 @@ public class BungeeConfigLoader
         }
 
         var configFile = new File(dataFolder, "config.yml");
+        boolean firstRun;
         if (!configFile.exists()) {
             // Copy the default config bundled in the JAR to the plugin's data folder
             try (var in = plugin.getResourceAsStream("config.yml")) {
                 Files.copy(in, configFile.toPath());
             }
+            firstRun = true;
+        } else {
+            firstRun = false;
         }
 
         var fileConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
-        return fromConfiguration(fileConfig);
+        var config = fromConfiguration(fileConfig);
+        config.setFirstRun(firstRun);
+        return config;
     }
 
     /**
