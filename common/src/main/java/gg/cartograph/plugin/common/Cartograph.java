@@ -154,7 +154,7 @@ public class Cartograph
 
     public boolean shouldReportPlugins()
     {
-        return config.getFlags().getOrDefault("report-plugins", false);
+        return config.getFlags().getOrDefault("report-plugins", true);
     }
 
     public boolean isProxyBackend()

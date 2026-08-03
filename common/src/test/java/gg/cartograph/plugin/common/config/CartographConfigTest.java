@@ -29,6 +29,12 @@ class CartographConfigTest
     }
 
     @Test
+    void reportPluginsDefaultsToTrue()
+    {
+        assertTrue(CartographConfig.defaults().getFlags().get("report-plugins"));
+    }
+
+    @Test
     void defaultsBufferHasCorrectValues()
     {
         var config = CartographConfig.defaults();

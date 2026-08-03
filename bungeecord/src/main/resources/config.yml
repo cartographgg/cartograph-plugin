@@ -1,8 +1,18 @@
+# Cartograph telemetry configuration.
+# What leaves this server is determined entirely by this file plus the plugin jar.
+
+# Your per-server API key from cartograph.gg. Empty = telemetry disabled entirely.
 api-key: ""
+# Where telemetry is sent. Change only for self-hosting.
 api-endpoint: "https://api.cartograph.gg"
 
 flags:
-  report-plugins: false
+  # Report the list of installed plugins (names + versions, never published per-server).
+  # On by default; set to false to opt out.
+  report-plugins: true
+  # Set true on a backend server behind a proxy so it does not double-count sessions
+  # the proxy already reports.
+  proxy-backend: false
 
 buffer:
   size-threshold: 50
@@ -12,4 +22,5 @@ buffer:
 telemetry:
   heartbeat:
     enabled: true
+    # Seconds between heartbeats. Clamped to the range [30, 300].
     interval: 60

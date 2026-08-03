@@ -28,6 +28,8 @@ public class NeoForgeConfigLoader
 
     private static final ModConfigSpec.BooleanValue FLAG_REPORT_PLUGINS;
 
+    private static final ModConfigSpec.BooleanValue FLAG_PROXY_BACKEND;
+
     private static final ModConfigSpec.IntValue BUFFER_SIZE_THRESHOLD;
 
     private static final ModConfigSpec.IntValue BUFFER_TIME_THRESHOLD;
@@ -53,8 +55,16 @@ public class NeoForgeConfigLoader
         builder.comment("Feature flags").push("flags");
 
         FLAG_REPORT_PLUGINS = builder
-                .comment("Whether to report installed mods to the API")
-                .define("report-plugins", false);
+                .comment(
+                        "Report the list of installed plugins (names + versions, never published per-server).",
+                        "On by default; set to false to opt out.")
+                .define("report-plugins", true);
+
+        FLAG_PROXY_BACKEND = builder
+                .comment(
+                        "Set true on a backend server behind a proxy so it does not double-count sessions",
+                        "the proxy already reports.")
+                .define("proxy-backend", false);
 
         builder.pop();
 
@@ -104,6 +114,7 @@ public class NeoForgeConfigLoader
         config.setApiEndpoint(API_ENDPOINT.get());
 
         config.getFlags().put("report-plugins", FLAG_REPORT_PLUGINS.get());
+        config.getFlags().put("proxy-backend", FLAG_PROXY_BACKEND.get());
 
         var buffer = new BufferConfig();
         buffer.setSizeThreshold(BUFFER_SIZE_THRESHOLD.get());
