@@ -83,11 +83,11 @@ class CartographConfigTest
         var config = CartographConfig.defaults();
         var custom = new TelemetryConfig();
         custom.setEnabled(false);
-        custom.setInterval(10);
+        custom.setInterval(45);
         config.getTelemetry().put("custom-type", custom);
 
         assertEquals(2, config.getTelemetry().size());
         assertFalse(config.getTelemetry().get("custom-type").isEnabled());
-        assertEquals(10, config.getTelemetry().get("custom-type").getInterval());
+        assertEquals(45, config.getTelemetry().get("custom-type").getInterval());
     }
 }
