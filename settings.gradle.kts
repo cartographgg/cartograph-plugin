@@ -30,4 +30,4 @@ include(":velocity:v1_21")
 include(":velocity:v26_1")
 include(":neoforge")
 include(":neoforge:v1_21")
-// NeoForge 26.x is beta-only upstream
+include(":neoforge:v26_1")

@@ -2,8 +2,6 @@ package gg.cartograph.plugin.neoforge;
 
 import gg.cartograph.plugin.common.Cartograph;
 import gg.cartograph.plugin.common.events.telemetry.PlayerJoinTelemetryEvent;
-import gg.cartograph.plugin.common.logging.CartographLogger;
-import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
@@ -11,16 +9,19 @@ import java.util.UUID;
 
 /**
  * NeoForge listener that records a {@link PlayerJoinTelemetryEvent} when a player
- * logs in to the server.
+ * logs in. All {@code net.minecraft} player access goes through {@link NeoForgePlatform}.
  */
 class PlayerJoinListener
 {
 
     private final Cartograph cartograph;
 
-    PlayerJoinListener(Cartograph cartograph)
+    private final NeoForgePlatform platform;
+
+    PlayerJoinListener(Cartograph cartograph, NeoForgePlatform platform)
     {
         this.cartograph = cartograph;
+        this.platform   = platform;
     }
 
     @SubscribeEvent
@@ -30,12 +31,14 @@ class PlayerJoinListener
             return;
         }
 
-        var player = event.getEntity();
-        if (!(player instanceof ServerPlayer serverPlayer)) {
+        Object player = event.getEntity();
+        if (!platform.isServerPlayer(player)) {
             return;
         }
 
         var logger = cartograph.getLogger();
+        var uuid   = platform.playerUuid(player);
+        var name   = platform.playerName(player);
 
         Boolean isFloodgate = null;
         try {
@@ -43,7 +46,7 @@ class PlayerJoinListener
             var getInstance       = floodgateClass.getMethod("getInstance");
             var api               = getInstance.invoke(null);
             var isFloodgatePlayer = floodgateClass.getMethod("isFloodgatePlayer", UUID.class);
-            if ((boolean) isFloodgatePlayer.invoke(api, player.getUUID())) {
+            if ((boolean) isFloodgatePlayer.invoke(api, uuid)) {
                 isFloodgate = true;
             }
         } catch (Exception ignored) {
@@ -52,17 +55,17 @@ class PlayerJoinListener
 
         cartograph.record(new PlayerJoinTelemetryEvent(
                 System.currentTimeMillis(),
-                player.getUUID(),
-                player.getGameProfile().getName(),
+                uuid,
+                name,
                 null,
                 null,
-                serverPlayer.clientInformation().language(),
-                serverPlayer.level().dimension().location().toString(),
+                platform.playerLocale(player),
+                platform.playerWorld(player),
                 isFloodgate,
                 // hostname: handshake capture deferred to the NeoForge follow-up spec
                 null
         ));
-        cartograph.getSessionTracker().trackJoin(player.getUUID());
-        logger.debug("Player joined: " + player.getGameProfile().getName() + " (" + player.getUUID() + "), floodgate: " + isFloodgate);
+        cartograph.getSessionTracker().trackJoin(uuid);
+        logger.debug("Player joined: " + name + " (" + uuid + "), floodgate: " + isFloodgate);
     }
 }

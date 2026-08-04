@@ -3,8 +3,8 @@ package gg.cartograph.plugin.neoforge;
 import gg.cartograph.plugin.common.Cartograph;
 import gg.cartograph.plugin.common.NodeType;
 import gg.cartograph.plugin.common.config.CartographConfig;
-import gg.cartograph.plugin.common.events.*;
 import gg.cartograph.plugin.common.detection.BootCapabilities;
+import gg.cartograph.plugin.common.events.*;
 import gg.cartograph.plugin.common.events.telemetry.BootTelemetryEvent;
 import gg.cartograph.plugin.common.events.telemetry.HeartbeatTelemetryEvent;
 import gg.cartograph.plugin.common.events.telemetry.ShutdownTelemetryEvent;
@@ -18,20 +18,22 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.lang.management.ManagementFactory;
-import java.util.List;
+import java.util.ServiceLoader;
 
 /**
  * NeoForge mod entry point for the Cartograph plugin.
  *
- * <p>Registers the config spec with NeoForge's configuration system at construction
- * time, then loads the resolved values into a {@link CartographConfig} when the server
- * starts and constructs the {@link Cartograph} runtime.</p>
+ * <p>Version-agnostic: it references only {@code net.neoforged} API and holds
+ * the {@code net.minecraft} server as an {@link Object}, delegating every
+ * {@code net.minecraft} operation to a {@link NeoForgePlatform} impl resolved at
+ * startup from the installed version module via {@link ServiceLoader}.</p>
  *
  * @see NeoForgeConfigLoader
+ * @see NeoForgePlatform
  */
 @Mod("cartograph")
 public class CartographNeoForgeMod
@@ -43,7 +45,9 @@ public class CartographNeoForgeMod
 
     private Cartograph cartograph;
 
-    private net.minecraft.server.MinecraftServer minecraftServer;
+    private NeoForgePlatform platform;
+
+    private Object minecraftServer;
 
     private final NeoForgeWorldStatsProvider worldStats = new NeoForgeWorldStatsProvider();
 
@@ -57,88 +61,64 @@ public class CartographNeoForgeMod
     public void onServerStarted(ServerStartedEvent event)
     {
         cartographConfig = NeoForgeConfigLoader.load();
-        minecraftServer = event.getServer();
-        cartograph      = new Cartograph(cartographConfig, new Log4jCartographLogger(LOGGER), this::buildHeartbeat);
+        platform         = ServiceLoader.load(NeoForgePlatform.class, getClass().getClassLoader())
+                                        .findFirst()
+                                        .orElseThrow(() -> new IllegalStateException(
+                                                "No NeoForgePlatform impl on the classpath — the version module is missing"));
+        minecraftServer  = event.getServer();
+        cartograph       = new Cartograph(cartographConfig, new Log4jCartographLogger(LOGGER), this::collectHeartbeat);
         cartograph.start();
         var heartbeatConfig = cartographConfig.getTelemetry().get("heartbeat");
         if (heartbeatConfig != null && heartbeatConfig.isEnabled()) {
             worldStats.start(heartbeatConfig.getInterval());
         }
-        cartograph.record(buildBootEvent(event));
-        NeoForge.EVENT_BUS.register(new PlayerJoinListener(cartograph));
-        NeoForge.EVENT_BUS.register(new PlayerLeaveListener(cartograph));
+        cartograph.record(buildBootEvent());
+        NeoForge.EVENT_BUS.register(new PlayerJoinListener(cartograph, platform));
+        NeoForge.EVENT_BUS.register(new PlayerLeaveListener(cartograph, platform));
     }
 
-    private HeartbeatTelemetryEvent buildHeartbeat()
+    private HeartbeatTelemetryEvent collectHeartbeat()
     {
-        var runtime = Runtime.getRuntime();
-        var osBean = (com.sun.management.OperatingSystemMXBean)
-                ManagementFactory.getOperatingSystemMXBean();
-
         var pct = cartograph.getTickSampler().getPercentiles();
         cartograph.getTickSampler().reset();
 
         var heartbeat = cartographConfig.getTelemetry().get("heartbeat");
         var interval  = heartbeat != null ? heartbeat.getInterval() : null;
 
-        var stats = worldStats.snapshot();
-
-        return new HeartbeatTelemetryEvent(
-                System.currentTimeMillis(),
-                new double[] {minecraftServer.getAverageTickTimeNanos() / 1_000_000.0},
-                pct.max(),
-                minecraftServer.getPlayerCount(),
-                runtime.totalMemory() - runtime.freeMemory(),
-                runtime.maxMemory(),
-                osBean.getProcessCpuLoad(),
-                osBean.getCpuLoad(),
-                stats.chunksLoaded(),
-                stats.entitiesLoaded(),
-                stats.notableWorlds().isEmpty() ? null : stats.notableWorlds(),
-                pct.p50(),
-                pct.p95(),
-                pct.p99(),
-                interval
-        );
+        return NeoForgeHeartbeat.build(platform, minecraftServer, interval, pct, worldStats.snapshot());
     }
 
-    private BootTelemetryEvent buildBootEvent(ServerStartedEvent event)
+    private BootTelemetryEvent buildBootEvent()
     {
-        var server = event.getServer();
-
         var mods = ModList.get().getMods().stream()
                           .map(mod -> new ModInfo(mod.getModId(), mod.getDisplayName(), mod.getVersion().toString()))
                           .toList();
-
-        var worlds    = server.getAllLevels().spliterator();
-        var worldList = new java.util.ArrayList<WorldInfo>();
-        worlds.forEachRemaining(level -> worldList.add(
-                new WorldInfo(level.dimension().location().toString(), level.dimension().location().getPath())
-        ));
 
         var neoforgeVersion = ModList.get().getModContainerById("neoforge")
                                      .map(c -> c.getModInfo().getVersion().toString())
                                      .orElse("unknown");
 
+        var cartographVersion = ModList.get().getModContainerById("cartograph")
+                                       .map(c -> c.getModInfo().getVersion().toString())
+                                       .orElse("unknown");
+
         return new BootTelemetryEvent(
                 System.currentTimeMillis(),
                 "NeoForge",
                 neoforgeVersion,
-                server.getServerVersion(),
+                platform.serverVersion(minecraftServer),
                 System.getProperty("java.version"),
                 new OsInfo(System.getProperty("os.name"), System.getProperty("os.arch")),
-                ModList.get().getModContainerById("cartograph")
-                       .map(c -> c.getModInfo().getVersion().toString())
-                       .orElse("unknown"),
-                cartograph.isProxyBackend() ? NodeType.BACKEND : NodeType.STANDALONE, // no platform detection available for NeoForge
-                server.getMaxPlayers(),
-                server.getPlayerList().getViewDistance(),
-                server.getPlayerList().getSimulationDistance(),
-                server.usesAuthentication(),
+                cartographVersion,
+                cartograph.isProxyBackend() ? NodeType.BACKEND : NodeType.STANDALONE,
+                platform.maxPlayers(minecraftServer),
+                platform.viewDistance(minecraftServer),
+                platform.simulationDistance(minecraftServer),
+                platform.usesAuthentication(minecraftServer),
                 null,
                 null,
                 null,
-                worldList,
+                platform.worlds(minecraftServer),
                 cartograph.shouldReportPlugins() ? mods : null,
                 BootCapabilities.detectClientVersion(cartograph.getLogger()),
                 BootCapabilities.detectBedrockSupport(cartograph.getLogger())
@@ -160,11 +140,11 @@ public class CartographNeoForgeMod
     }
 
     @SubscribeEvent
-    public void onServerTick(net.neoforged.neoforge.event.tick.ServerTickEvent.Post event)
+    public void onServerTick(ServerTickEvent.Post event)
     {
         if (cartograph != null && minecraftServer != null) {
-            cartograph.getTickSampler().recordTick(minecraftServer.getAverageTickTimeNanos() / 1_000_000.0);
-            worldStats.sample(minecraftServer);
+            cartograph.getTickSampler().recordTick(platform.averageTickTimeMs(minecraftServer));
+            worldStats.sample(platform, minecraftServer);
         }
     }
 

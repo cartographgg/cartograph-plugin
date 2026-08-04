@@ -1,26 +1,20 @@
 package gg.cartograph.plugin.neoforge;
 
-import gg.cartograph.plugin.common.events.WorldMetrics;
 import gg.cartograph.plugin.common.world.WorldStatsProvider;
 import gg.cartograph.plugin.common.world.WorldStatsSnapshot;
-import net.minecraft.server.MinecraftServer;
 
-import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * NeoForge world stats provider.
+ * NeoForge world stats holder.
  *
- * <p>Sampling happens on the server tick thread via
- * {@link CartographNeoForgeMod#onServerTick}, which already runs on the main
- * server thread. The mod calls {@link #sample(MinecraftServer)} once per
- * configured interval (rate-limited internally) and the heartbeat reads the
- * latest snapshot via {@link #snapshot()} from any thread.</p>
+ * <p>Version-neutral: it owns the rate-limit and the latest-snapshot reference,
+ * but the actual {@code net.minecraft} sampling (iterating levels, counting
+ * chunks, reading dimension ids) lives in the per-version
+ * {@link NeoForgePlatform#sampleWorldStats(Object)} impl.</p>
  *
- * <p>Entity counts are not sampled because Vanilla's per-level entity tracking
- * does not expose a cheap aggregate; reporting just chunks keeps the path
- * thread-safe and matches the existing NeoForge heartbeat shape (the original
- * code already passed {@code entitiesLoaded == null}).</p>
+ * <p>Sampling is driven by {@link CartographNeoForgeMod#onServerTick} on the
+ * server tick thread; the heartbeat reads {@link #snapshot()} from any thread.</p>
  */
 public class NeoForgeWorldStatsProvider implements WorldStatsProvider
 {
@@ -52,31 +46,16 @@ public class NeoForgeWorldStatsProvider implements WorldStatsProvider
 
     /**
      * Called from the NeoForge server-tick event. Rate-limited internally so a
-     * tick handler running 20× per second doesn't oversample.
+     * tick handler running 20× per second doesn't oversample. Delegates the
+     * platform-specific sampling to {@code platform}.
      */
-    public void sample(MinecraftServer server)
+    public void sample(NeoForgePlatform platform, Object server)
     {
         var now = System.nanoTime();
         if (now - lastSampleNanos < sampleIntervalNanos) {
             return;
         }
         lastSampleNanos = now;
-
-        var totalChunks = 0;
-        var notable     = new ArrayList<WorldMetrics>();
-
-        for (var level : server.getAllLevels()) {
-            var chunks = level.getChunkSource().getLoadedChunksCount();
-            totalChunks += chunks;
-            if (WorldMetrics.isNotable(chunks, 0)) {
-                notable.add(new WorldMetrics(
-                        level.dimension().location().toString(),
-                        chunks,
-                        null
-                ));
-            }
-        }
-
-        latest.set(new WorldStatsSnapshot(totalChunks, null, notable));
+        latest.set(platform.sampleWorldStats(server));
     }
 }

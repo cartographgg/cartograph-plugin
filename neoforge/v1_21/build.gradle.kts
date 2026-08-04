@@ -30,6 +30,10 @@ neoForge {
 
 dependencies {
     implementation(project(":neoforge"))
+    // NeoForge 21.x already provides jackson-annotation (and possibly more) as
+    // module-path libraries; bundling Jackson here duplicates those modules and
+    // fails resolution. Testing whether 21.x provides the full stack (incl.
+    // databind). 26.1 provides none, so v26_1 jarJars all three.
 }
 
 tasks.named<Jar>("jar") {
