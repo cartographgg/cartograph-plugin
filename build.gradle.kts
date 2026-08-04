@@ -7,6 +7,19 @@ allprojects {
     version = property("version") as String
 }
 
+// Expand ${version} in the Bukkit-family plugin manifests so the plugin reports
+// its real version at runtime (they previously shipped the literal placeholder,
+// leaving the boot event's pluginVersion as "${version}").
+subprojects {
+    val projectVersion = version
+    tasks.withType<org.gradle.language.jvm.tasks.ProcessResources>().configureEach {
+        inputs.property("cartographVersion", projectVersion)
+        filesMatching(listOf("plugin.yml", "paper-plugin.yml", "bungee.yml")) {
+            expand(mapOf("version" to projectVersion))
+        }
+    }
+}
+
 val testrigPathProvider = providers.gradleProperty("testrigPath")
     .orElse("../cartograph-testrig")
 
