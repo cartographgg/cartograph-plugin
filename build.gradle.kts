@@ -17,14 +17,15 @@ val testrigPathProvider = providers.gradleProperty("testrigPath")
 // Non-bukkit platforms don't have this issue (only one JAR per directory).
 data class TestrigDest(val platform: String, val line: String, val type: String = "")
 
-// Folia v26_1 omitted — Folia has no 26.x release upstream.
-// NeoForge v26_1 targets stable NeoForge 26.1.2 (see the 2026-08-04 shim spec).
+// Folia and NeoForge v26_1 target their stable 26.1.x upstream releases
+// (Folia 26.1.2, NeoForge 26.1.2 — see the 2026-08-04 shim spec).
 val testrigPlatformMap = mapOf(
     ":bukkit:paper:v1_21"     to TestrigDest("bukkit",     "v1_21", "paper"),
     ":bukkit:paper:v26_1"     to TestrigDest("bukkit",     "v26_1", "paper"),
     ":bukkit:spigot:v1_21"    to TestrigDest("bukkit",     "v1_21", "spigot"),
     ":bukkit:spigot:v26_1"    to TestrigDest("bukkit",     "v26_1", "spigot"),
     ":bukkit:folia:v1_21"     to TestrigDest("bukkit",     "v1_21", "folia"),
+    ":bukkit:folia:v26_1"     to TestrigDest("bukkit",     "v26_1", "folia"),
     ":bungeecord:v1_21"       to TestrigDest("bungeecord", "v1_21"),
     ":bungeecord:v26_1"       to TestrigDest("bungeecord", "v26_1"),
     ":velocity:v1_21"         to TestrigDest("velocity",   "v1_21"),

@@ -21,7 +21,7 @@ include(":bukkit:paper:v1_21")
 include(":bukkit:paper:v26_1")
 include(":bukkit:folia")
 include(":bukkit:folia:v1_21")
-// Folia v26_1 not yet available upstream
+include(":bukkit:folia:v26_1")
 include(":bungeecord")
 include(":bungeecord:v1_21")
 include(":bungeecord:v26_1")
