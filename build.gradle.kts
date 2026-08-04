@@ -7,14 +7,17 @@ allprojects {
     version = property("version") as String
 }
 
-// Expand ${version} in the Bukkit-family plugin manifests so the plugin reports
-// its real version at runtime (they previously shipped the literal placeholder,
-// leaving the boot event's pluginVersion as "${version}").
+// Expand ${version} in the plugin manifests so each platform reports its real
+// version at runtime (they previously shipped the literal placeholder, leaving
+// the boot event's pluginVersion as "${version}"). neoforge.mods.toml lives
+// under META-INF/, hence the glob. Velocity can't join here: it bakes the
+// version into velocity-plugin.json from a compile-time annotation, so it uses
+// a generated BuildConstants instead (see velocity/build.gradle.kts).
 subprojects {
     val projectVersion = version
     tasks.withType<org.gradle.language.jvm.tasks.ProcessResources>().configureEach {
         inputs.property("cartographVersion", projectVersion)
-        filesMatching(listOf("plugin.yml", "paper-plugin.yml", "bungee.yml")) {
+        filesMatching(listOf("plugin.yml", "paper-plugin.yml", "bungee.yml", "**/neoforge.mods.toml")) {
             expand(mapOf("version" to projectVersion))
         }
     }

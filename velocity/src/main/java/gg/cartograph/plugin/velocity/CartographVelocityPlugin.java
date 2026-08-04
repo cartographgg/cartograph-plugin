@@ -40,7 +40,7 @@ import java.util.List;
 @Plugin(
         id = "cartograph",
         name = "Cartograph",
-        version = "1.0.0-SNAPSHOT",
+        version = BuildConstants.VERSION,
         description = "Cartograph metrics plugin",
         authors = {"Cartograph"},
         dependencies = {
