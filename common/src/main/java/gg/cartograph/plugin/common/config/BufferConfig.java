@@ -22,6 +22,10 @@ public class BufferConfig
 
     private int maxRetries = 3;
 
+    private FailureMode failureMode = FailureMode.DISK;
+    private DiskBufferConfig disk   = new DiskBufferConfig();
+    private BackoffConfig backoff   = new BackoffConfig();
+
     public int getSizeThreshold()
     {
         return sizeThreshold;
@@ -51,4 +55,13 @@ public class BufferConfig
     {
         this.maxRetries = maxRetries;
     }
+
+    public FailureMode getFailureMode() { return failureMode; }
+    public void setFailureMode(FailureMode failureMode) { this.failureMode = failureMode; }
+
+    public DiskBufferConfig getDisk() { return disk; }
+    public void setDisk(DiskBufferConfig disk) { this.disk = disk; }
+
+    public BackoffConfig getBackoff() { return backoff; }
+    public void setBackoff(BackoffConfig backoff) { this.backoff = backoff; }
 }

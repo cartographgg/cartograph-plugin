@@ -29,4 +29,16 @@ class BufferConfigTest
         assertEquals(120, config.getTimeThreshold());
         assertEquals(5, config.getMaxRetries());
     }
+
+    @Test void defaultsIncludeFailureModeDiskAndSubConfigs() {
+        var config = new BufferConfig();
+        assertEquals(FailureMode.DISK, config.getFailureMode());
+        assertEquals(8, config.getDisk().getMaxSizeMb());
+        assertEquals(900, config.getBackoff().getMaxSeconds());
+    }
+    @Test void failureModeIsSettable() {
+        var config = new BufferConfig();
+        config.setFailureMode(FailureMode.NONE);
+        assertEquals(FailureMode.NONE, config.getFailureMode());
+    }
 }
