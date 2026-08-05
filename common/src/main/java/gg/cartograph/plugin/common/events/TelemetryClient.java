@@ -12,6 +12,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import java.util.zip.GZIPOutputStream;
 
 /**
@@ -121,6 +122,85 @@ public class TelemetryClient
             throw new RuntimeException("Cartograph API returned status " + status);
         } else {
             logger.warn("Cartograph API returned unexpected status " + status + " — discarding");
+        }
+    }
+
+    /**
+     * Sends a batch of telemetry (pre-serialized bytes) to the Cartograph API.
+     *
+     * <p>Gzip-compresses the payload and POSTs to the ingest endpoint, returning
+     * a {@link SendResult} that indicates success, retry, or discard. Honors the
+     * HTTP {@code Retry-After} header for 429 and 503 responses.</p>
+     *
+     * @param payload the pre-serialized telemetry batch (typically JSON)
+     * @return a SendResult indicating success, retry, or discard
+     */
+    public SendResult send(byte[] payload)
+    {
+        if (apiKey == null || apiKey.isBlank()) {
+            logger.warn("Telemetry not sent — API key is not configured");
+            return SendResult.discard();
+        }
+
+        byte[] compressed;
+        try {
+            compressed = gzip(payload);
+        } catch (IOException e) {
+            logger.error("Failed to compress telemetry batch", e);
+            return SendResult.discard();
+        }
+        logger.debug("Sending batch to " + apiEndpoint + "/ingest (" + compressed.length + " bytes)");
+
+        var request = HttpRequest.newBuilder()
+                                 .uri(URI.create(apiEndpoint + "/ingest"))
+                                 .timeout(REQUEST_TIMEOUT)
+                                 .header("Authorization", "Bearer " + apiKey)
+                                 .header("Content-Type", "application/json")
+                                 .header("Content-Encoding", "gzip")
+                                 .POST(HttpRequest.BodyPublishers.ofByteArray(compressed))
+                                 .build();
+
+        HttpResponse<Void> response;
+        try {
+            response = httpClient.send(request, HttpResponse.BodyHandlers.discarding());
+        } catch (IOException e) {
+            logger.warn("Cartograph API request failed (" + e.getMessage() + ") — will retry");
+            return SendResult.retry(null);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return SendResult.retry(null);
+        }
+
+        int status = response.statusCode();
+        if (status >= 200 && status < 300) {
+            return SendResult.ok();
+        } else if (status == 429 || status == 503) {
+            return SendResult.retry(parseRetryAfter(response).orElse(null));
+        } else if (status >= 500) {
+            return SendResult.retry(null);
+        } else {
+            logger.error("Cartograph API rejected batch with status " + status + " — discarding");
+            return SendResult.discard();
+        }
+    }
+
+    private Optional<Duration> parseRetryAfter(HttpResponse<?> response)
+    {
+        var header = response.headers().firstValue("Retry-After");
+        if (header.isEmpty()) {
+            return Optional.empty();
+        }
+        String raw = header.get().trim();
+        try {
+            return Optional.of(Duration.ofSeconds(Math.max(0, Long.parseLong(raw))));
+        } catch (NumberFormatException ignored) {
+            try {
+                var when = java.time.ZonedDateTime.parse(raw, java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME);
+                long secs = java.time.Duration.between(java.time.ZonedDateTime.now(), when).toSeconds();
+                return Optional.of(Duration.ofSeconds(Math.max(0, secs)));
+            } catch (Exception e) {
+                return Optional.empty();
+            }
         }
     }
 
