@@ -43,7 +43,8 @@ public class CartographBungeePlugin extends Plugin
             getLogger().severe("Failed to load config: " + e.getMessage());
             return;
         }
-        cartograph = new Cartograph(cartographConfig, new JulCartographLogger(getLogger()), this::buildHeartbeat);
+        cartograph = new Cartograph(cartographConfig, new JulCartographLogger(getLogger()), this::buildHeartbeat,
+                getDataFolder().toPath());
         cartograph.start();
         getProxy().getScheduler().schedule(
                 this,

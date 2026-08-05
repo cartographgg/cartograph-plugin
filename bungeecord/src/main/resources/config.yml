@@ -17,7 +17,17 @@ flags:
 buffer:
   size-threshold: 50
   time-threshold: 60
-  max-retries: 3
+  # What happens to a batch when a send fails:
+  #   disk   - persist to disk, retry with backoff, survives restarts (default)
+  #   memory - retry in memory only, bounded, lost on restart
+  #   none   - drop it; telemetry is strictly best-effort
+  failure-mode: disk
+  disk:
+    max-size-mb: 8      # on-disk budget; oldest dropped when exceeded
+    max-age-hours: 24   # drop batches older than this
+  backoff:
+    max-seconds: 900              # cap on exponential backoff (15 min)
+    retry-after-cap-seconds: 3600 # honor server Retry-After up to 1h
 
 telemetry:
   heartbeat:
