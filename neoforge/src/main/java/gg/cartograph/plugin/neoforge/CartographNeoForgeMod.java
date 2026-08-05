@@ -66,7 +66,8 @@ public class CartographNeoForgeMod
                                         .orElseThrow(() -> new IllegalStateException(
                                                 "No NeoForgePlatform impl on the classpath — the version module is missing"));
         minecraftServer  = event.getServer();
-        cartograph       = new Cartograph(cartographConfig, new Log4jCartographLogger(LOGGER), this::collectHeartbeat);
+        cartograph       = new Cartograph(cartographConfig, new Log4jCartographLogger(LOGGER), this::collectHeartbeat,
+                net.neoforged.fml.loading.FMLPaths.GAMEDIR.get().resolve("cartograph"));
         cartograph.start();
         var heartbeatConfig = cartographConfig.getTelemetry().get("heartbeat");
         if (heartbeatConfig != null && heartbeatConfig.isEnabled()) {

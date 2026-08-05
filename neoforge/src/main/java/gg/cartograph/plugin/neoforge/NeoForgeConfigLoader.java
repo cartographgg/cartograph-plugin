@@ -43,7 +43,15 @@ public class NeoForgeConfigLoader
 
     private static final ModConfigSpec.IntValue BUFFER_TIME_THRESHOLD;
 
-    private static final ModConfigSpec.IntValue BUFFER_MAX_RETRIES;
+    private static final ModConfigSpec.EnumValue<gg.cartograph.plugin.common.config.FailureMode> BUFFER_FAILURE_MODE;
+
+    private static final ModConfigSpec.IntValue BUFFER_DISK_MAX_SIZE_MB;
+
+    private static final ModConfigSpec.IntValue BUFFER_DISK_MAX_AGE_HOURS;
+
+    private static final ModConfigSpec.IntValue BUFFER_BACKOFF_MAX_SECONDS;
+
+    private static final ModConfigSpec.IntValue BUFFER_BACKOFF_RETRY_AFTER_CAP;
 
     private static final ModConfigSpec.BooleanValue HEARTBEAT_ENABLED;
 
@@ -89,9 +97,27 @@ public class NeoForgeConfigLoader
                 .comment("Flush buffer after this many seconds")
                 .defineInRange("time-threshold", 60, 1, Integer.MAX_VALUE);
 
-        BUFFER_MAX_RETRIES = builder
-                .comment("Maximum retry attempts on failed sends")
-                .defineInRange("max-retries", 3, 0, Integer.MAX_VALUE);
+        BUFFER_FAILURE_MODE = builder
+                .comment("On send failure: disk (persist + retry, default), memory (RAM only), none (drop)")
+                .defineEnum("failure-mode", gg.cartograph.plugin.common.config.FailureMode.DISK);
+
+        builder.push("disk");
+        BUFFER_DISK_MAX_SIZE_MB = builder
+                .comment("On-disk spool budget in MB; oldest dropped when exceeded")
+                .defineInRange("max-size-mb", 8, 1, Integer.MAX_VALUE);
+        BUFFER_DISK_MAX_AGE_HOURS = builder
+                .comment("Drop spooled batches older than this many hours")
+                .defineInRange("max-age-hours", 24, 1, Integer.MAX_VALUE);
+        builder.pop();
+
+        builder.push("backoff");
+        BUFFER_BACKOFF_MAX_SECONDS = builder
+                .comment("Cap on exponential backoff, seconds")
+                .defineInRange("max-seconds", 900, 1, Integer.MAX_VALUE);
+        BUFFER_BACKOFF_RETRY_AFTER_CAP = builder
+                .comment("Honor server Retry-After up to this many seconds")
+                .defineInRange("retry-after-cap-seconds", 3600, 1, Integer.MAX_VALUE);
+        builder.pop();
 
         builder.pop();
 
@@ -149,7 +175,11 @@ public class NeoForgeConfigLoader
         var buffer = new BufferConfig();
         buffer.setSizeThreshold(BUFFER_SIZE_THRESHOLD.get());
         buffer.setTimeThreshold(BUFFER_TIME_THRESHOLD.get());
-        buffer.setMaxRetries(BUFFER_MAX_RETRIES.get());
+        buffer.setFailureMode(BUFFER_FAILURE_MODE.get());
+        buffer.getDisk().setMaxSizeMb(BUFFER_DISK_MAX_SIZE_MB.get());
+        buffer.getDisk().setMaxAgeHours(BUFFER_DISK_MAX_AGE_HOURS.get());
+        buffer.getBackoff().setMaxSeconds(BUFFER_BACKOFF_MAX_SECONDS.get());
+        buffer.getBackoff().setRetryAfterCapSeconds(BUFFER_BACKOFF_RETRY_AFTER_CAP.get());
         config.setBuffer(buffer);
 
         var heartbeat = new TelemetryConfig();
