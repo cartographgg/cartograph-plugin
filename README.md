@@ -47,12 +47,19 @@ api-key: ""
 api-endpoint: "https://api.cartograph.gg"
 
 flags:
-  report-plugins: false
+  report-plugins: true
+  proxy-backend: false
 
 buffer:
   size-threshold: 50
   time-threshold: 60
-  max-retries: 3
+  failure-mode: disk
+  disk:
+    max-size-mb: 8
+    max-age-hours: 24
+  backoff:
+    max-seconds: 900
+    retry-after-cap-seconds: 3600
 
 telemetry:
   heartbeat:
@@ -69,14 +76,13 @@ telemetry is sent.
 **`api-endpoint`** (string, default: `"https://api.cartograph.gg"`)
 The URL telemetry is sent to. Only change this if you are running a self-hosted Cartograph instance.
 
-**`flags.report-plugins`** (boolean, default: `false`)
-When `true`, the list of installed plugins (or mods on NeoForge) is included in the boot telemetry event. Disabled by
-default for privacy.
+**`flags.report-plugins`** (boolean, default: `true`)
+When `true`, the list of installed plugins (or mods on NeoForge) is included in the boot telemetry event (names and
+versions only, never published per-server). Enabled by default; set to `false` to opt out.
 
 **`flags.proxy-backend`** (boolean, default: `false`)
 Set to `true` on backend servers that sit behind a BungeeCord or Velocity proxy. When enabled, the plugin skips player
-join/leave tracking on the backend (the proxy handles it instead) and reports the server's node type as `BACKEND`. Not
-present in the default config - add it manually under `flags` if needed.
+join/leave tracking on the backend (the proxy handles it instead) and reports the server's node type as `BACKEND`.
 
 **`buffer.size-threshold`** (integer, default: `50`)
 The number of events to accumulate before triggering a flush to the API.
@@ -84,14 +90,30 @@ The number of events to accumulate before triggering a flush to the API.
 **`buffer.time-threshold`** (integer, default: `60`)
 Maximum seconds to wait before flushing buffered events, regardless of count.
 
-**`buffer.max-retries`** (integer, default: `3`)
-Number of times to retry a failed batch send before discarding the batch.
+**`buffer.failure-mode`** (string, default: `disk`)
+What happens to a batch when a send fails. `disk` persists undelivered batches to disk and retries with backoff, so they
+survive an outage or a restart; `memory` retries in memory only (bounded, lost on restart); `none` drops the batch
+(strictly best-effort, no local state). Backoff always applies regardless of this setting.
+
+**`buffer.disk.max-size-mb`** (integer, default: `8`)
+On-disk budget for undelivered batches (used by `failure-mode: disk`, and as the in-memory budget for `memory`). The
+oldest batches are dropped once this is exceeded.
+
+**`buffer.disk.max-age-hours`** (integer, default: `24`)
+Undelivered batches older than this are dropped.
+
+**`buffer.backoff.max-seconds`** (integer, default: `900`)
+Cap on the exponential backoff applied between retries after a send failure.
+
+**`buffer.backoff.retry-after-cap-seconds`** (integer, default: `3600`)
+Upper bound on how long a server-supplied HTTP `Retry-After` will be honored.
 
 **`telemetry.heartbeat.enabled`** (boolean, default: `true`)
 Whether to collect periodic server health metrics.
 
 **`telemetry.heartbeat.interval`** (integer, default: `60`)
-How often (in seconds) to collect a heartbeat snapshot.
+How often (in seconds) to collect a heartbeat snapshot. Clamped to the range [30, 300]; the effective interval in use is
+included in each heartbeat event.
 
 ## Data Collection
 
@@ -102,14 +124,12 @@ This section describes exactly what telemetry the plugin sends.
 Sent once when the server starts.
 
 - Server software and version (e.g. Paper 1.21)
-- Java version and vendor
-- Operating system name, version, and architecture
+- Java version
+- Operating system name and architecture
 - Cartograph plugin version
 - Maximum player slots, view distance, simulation distance
 - Online mode and whitelist status
-- Server MOTD
 - List of worlds with environment types
-- Resource packs (if configured)
 - Installed plugins/mods (only if `report-plugins` is enabled)
 - Backend server list (proxy platforms only)
 - Supported Minecraft client protocol versions (if ViaVersion is installed)
@@ -120,18 +140,19 @@ Sent once when the server starts.
 Sent periodically (default every 60 seconds).
 
 - TPS (ticks per second) averages
-- Mean and peak tick duration
+- Tick duration (MSPT): peak, plus p50 / p95 / p99 percentiles
 - Online player count
 - Memory usage (used and max)
 - CPU load (process and system)
-- Active thread count
 - Loaded chunks and entities (server platforms only)
 - Per-world breakdown for notable worlds
+- Effective heartbeat interval in use
 
 ### Player join
 
 - Player UUID and username
 - Whether the player is new (first join)
+- Client protocol version
 - Player locale
 - Connection hostname (the address the player used to connect)
 - Current world
