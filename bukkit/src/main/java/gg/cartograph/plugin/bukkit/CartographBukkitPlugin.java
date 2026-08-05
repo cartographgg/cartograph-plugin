@@ -51,7 +51,8 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
     public void onEnable()
     {
         cartographConfig = BukkitConfigLoader.load(this);
-        cartograph = new Cartograph(cartographConfig, new JulCartographLogger(getLogger()), this::buildHeartbeat);
+        cartograph = new Cartograph(cartographConfig, new JulCartographLogger(getLogger()), this::buildHeartbeat,
+                getDataFolder().toPath());
         cartograph.start();
         worldStats = createWorldStatsProvider();
         var heartbeatConfig = cartographConfig.getTelemetry().get("heartbeat");

@@ -63,7 +63,19 @@ public class BukkitConfigLoader
             var buffer = config.getBuffer();
             buffer.setSizeThreshold(bufferSection.getInt("size-threshold", buffer.getSizeThreshold()));
             buffer.setTimeThreshold(bufferSection.getInt("time-threshold", buffer.getTimeThreshold()));
-            buffer.setMaxRetries(bufferSection.getInt("max-retries", buffer.getMaxRetries()));
+            buffer.setFailureMode(gg.cartograph.plugin.common.config.FailureMode.from(
+                    bufferSection.getString("failure-mode", buffer.getFailureMode().name().toLowerCase())));
+            var diskSection = bufferSection.getConfigurationSection("disk");
+            if (diskSection != null) {
+                buffer.getDisk().setMaxSizeMb(diskSection.getInt("max-size-mb", buffer.getDisk().getMaxSizeMb()));
+                buffer.getDisk().setMaxAgeHours(diskSection.getInt("max-age-hours", buffer.getDisk().getMaxAgeHours()));
+            }
+            var backoffSection = bufferSection.getConfigurationSection("backoff");
+            if (backoffSection != null) {
+                buffer.getBackoff().setMaxSeconds(backoffSection.getInt("max-seconds", buffer.getBackoff().getMaxSeconds()));
+                buffer.getBackoff().setRetryAfterCapSeconds(
+                        backoffSection.getInt("retry-after-cap-seconds", buffer.getBackoff().getRetryAfterCapSeconds()));
+            }
         }
 
         var telemetrySection = section.getConfigurationSection("telemetry");

@@ -59,18 +59,20 @@ class BukkitConfigLoaderTest
     }
 
     @Test
-    void overridesBufferValues()
+    void readsFailureModeAndDiskAndBackoff()
     {
         var yaml = new YamlConfiguration();
-        yaml.set("buffer.size-threshold", 100);
-        yaml.set("buffer.time-threshold", 30);
-        yaml.set("buffer.max-retries", 5);
-
+        yaml.set("buffer.failure-mode", "memory");
+        yaml.set("buffer.disk.max-size-mb", 16);
+        yaml.set("buffer.disk.max-age-hours", 12);
+        yaml.set("buffer.backoff.max-seconds", 120);
+        yaml.set("buffer.backoff.retry-after-cap-seconds", 600);
         var config = BukkitConfigLoader.fromSection(yaml);
-
-        assertEquals(100, config.getBuffer().getSizeThreshold());
-        assertEquals(30, config.getBuffer().getTimeThreshold());
-        assertEquals(5, config.getBuffer().getMaxRetries());
+        assertEquals(gg.cartograph.plugin.common.config.FailureMode.MEMORY, config.getBuffer().getFailureMode());
+        assertEquals(16, config.getBuffer().getDisk().getMaxSizeMb());
+        assertEquals(12, config.getBuffer().getDisk().getMaxAgeHours());
+        assertEquals(120, config.getBuffer().getBackoff().getMaxSeconds());
+        assertEquals(600, config.getBuffer().getBackoff().getRetryAfterCapSeconds());
     }
 
     @Test
