@@ -102,7 +102,8 @@ public class TelemetryClient
         try {
             response = httpClient.send(request, HttpResponse.BodyHandlers.discarding());
         } catch (IOException e) {
-            logger.warn("Cartograph API request failed (" + e.getMessage() + ") — will retry");
+            String reason = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+            logger.warn("Cartograph API request failed (" + reason + ") — will retry");
             return SendResult.retry(null);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

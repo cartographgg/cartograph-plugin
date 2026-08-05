@@ -116,8 +116,8 @@ public class EventBuffer
                 } else if (result.isDiscard()) {
                     spool.delete(s);
                 } else { // RETRY
-                    armBackoff(result);
                     spill(live); // the live batch was never attempted this cycle
+                    armBackoff(result); // after spill, so the logged queue count is accurate
                     return;
                 }
             }
@@ -127,8 +127,8 @@ public class EventBuffer
                 if (result.isOk()) {
                     backoff.onSuccess();
                 } else if (result.isRetry()) {
-                    armBackoff(result);
                     spill(live);
+                    armBackoff(result); // after spill, so the logged queue count is accurate
                 } // DISCARD → drop
             }
         } finally {

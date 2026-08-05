@@ -117,4 +117,13 @@ class TelemetryClientTest
         var client = new TelemetryClient("https://api.cartograph.gg", "k", logger, httpClient);
         assertTrue(client.send(payload()).isRetry());
     }
+
+    @SuppressWarnings("unchecked")
+    @Test void byteSendIoExceptionWithNullMessageLogsExceptionType() throws Exception {
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenThrow(new java.io.IOException()); // null message, as a connection-refused often has
+        var client = new TelemetryClient("https://api.cartograph.gg", "k", logger, httpClient);
+        assertTrue(client.send(payload()).isRetry());
+        verify(logger).warn("Cartograph API request failed (IOException) — will retry");
+    }
 }

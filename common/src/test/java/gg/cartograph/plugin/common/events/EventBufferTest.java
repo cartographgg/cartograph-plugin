@@ -106,6 +106,18 @@ class EventBufferTest
         assertEquals(1, spool.size()); // final flush failed → spilled, not lost
     }
 
+    @Test void backoffLogReportsSpooledCountAfterSpill() {
+        // Explicit Retry-After makes the backoff delay deterministic (no jitter),
+        // so the whole log line is assertable. The count must reflect the batch
+        // spilled THIS cycle (1), not the pre-spill count (0).
+        var b = buffer(p -> { sent.add(p); return SendResult.retry(Duration.ofSeconds(30)); });
+        b.start();
+        b.add(event()); b.add(event()); b.add(event()); // size flush → RETRY(30s) → spill
+        awaitSent(1);
+        verify(logger, timeout(2000)).warn("Send failed — backing off 30s (1 batches queued)");
+        b.shutdown();
+    }
+
     @Test void startLogsFailureMode() {
         var b = buffer(p -> SendResult.ok());
         b.start();
