@@ -191,6 +191,14 @@ class CartographTest
     }
 
     @Test
+    void getGcSamplerCreatesLazily()
+    {
+        var sampler = cartograph.getGcSampler();
+        assertNotNull(sampler);
+        assertSame(sampler, cartograph.getGcSampler());
+    }
+
+    @Test
     void discloseLogsStatusAndFirstRunNotice()
     {
         var messages = new java.util.ArrayList<String>();

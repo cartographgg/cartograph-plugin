@@ -144,6 +144,7 @@ Sent periodically (default every 60 seconds).
 - Online player count
 - Memory usage (used and max)
 - CPU load (process and system)
+- GC collections and pause time (ms) since the last heartbeat
 - Loaded chunks and entities (server platforms only)
 - Per-world breakdown for notable worlds
 - Effective heartbeat interval in use

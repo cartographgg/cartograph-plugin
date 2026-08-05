@@ -69,7 +69,7 @@ public class Cartograph
     public void start()
     {
         startTime = System.currentTimeMillis();
-        gcSampler = new GcSampler();
+        getGcSampler(); // create eagerly so the GC baseline is stamped at boot
         sessionTracker = new SessionTracker(logger);
         telemetryClient = new TelemetryClient(config.getApiEndpoint(), config.getApiKey(), logger);
         var factory = new TelemetryPayloadFactory();
@@ -194,8 +194,11 @@ public class Cartograph
         return tickSampler;
     }
 
-    public GcSampler getGcSampler()
+    public synchronized GcSampler getGcSampler()
     {
+        if (gcSampler == null) {
+            gcSampler = new GcSampler();
+        }
         return gcSampler;
     }
 
