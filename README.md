@@ -13,16 +13,15 @@ to [Cartograph](https://cartograph.gg).
 |------------|------------|---------------------------------------|
 | Spigot     | 1.21, 26.1 | `cartograph-spigot-{version}.jar`     |
 | Paper      | 1.21, 26.1 | `cartograph-paper-{version}.jar`      |
-| Folia      | 1.21       | `cartograph-folia-{version}.jar`      |
+| Folia      | 1.21, 26.1 | `cartograph-folia-{version}.jar`      |
 | BungeeCord | 1.21, 26.1 | `cartograph-bungeecord-{version}.jar` |
 | Velocity   | 1.21, 26.1 | `cartograph-velocity-{version}.jar`   |
-| NeoForge   | 1.21       | `cartograph-neoforge-{version}.jar`   |
+| NeoForge   | 1.21, 26.1 | `cartograph-neoforge-{version}.jar`   |
 
 Spigot, Paper, and Folia are server platforms. BungeeCord and Velocity are proxy platforms. NeoForge is a mod loader.
 
-Folia and NeoForge are not yet supported on Minecraft 26.1: PaperMC has not released
-a Folia experimental for the 26.x line, and NeoForge 26.x ships only beta builds
-upstream. Both lines will be added when stable upstream releases ship.
+The Minecraft 26.1 builds target the current stable upstream releases (Folia 26.1.2, NeoForge 26.1.2). The 26.2 line is
+not yet supported.
 
 ## Installation
 
@@ -92,8 +91,9 @@ Maximum seconds to wait before flushing buffered events, regardless of count.
 
 **`buffer.failure-mode`** (string, default: `disk`)
 What happens to a batch when a send fails. `disk` persists undelivered batches to disk and retries with backoff, so they
-survive an outage or a restart; `memory` retries in memory only (bounded, lost on restart); `none` drops the batch
-(strictly best-effort, no local state). Backoff always applies regardless of this setting.
+survive an outage or a restart (spilled under `plugins/Cartograph/spool/`, or `cartograph/spool/` in the game directory
+on NeoForge); `memory` retries in memory only (bounded, lost on restart); `none` drops the batch (strictly best-effort,
+no local state). Backoff always applies regardless of this setting.
 
 **`buffer.disk.max-size-mb`** (integer, default: `8`)
 On-disk budget for undelivered batches (used by `failure-mode: disk`, and as the in-memory budget for `memory`). The
@@ -174,7 +174,8 @@ Sent on clean server stop.
 
 ## Building from Source
 
-**Prerequisites:** Java 21 or later, Git.
+**Prerequisites:** JDK 21 and Git. The Minecraft 26.1 modules additionally require JDK 25 available to Gradle's
+toolchain support — they target Java 25, as Minecraft 26.1 requires.
 
 ```
 git clone https://github.com/cartographgg/cartograph-plugin.git
@@ -187,12 +188,21 @@ The Gradle wrapper is included - no need to install Gradle separately.
 **Output JARs** are in each platform's version-specific build directory:
 
 ```
+# Minecraft 1.21 line
 bukkit/spigot/v1_21/build/libs/cartograph-spigot-1.21-*.jar
 bukkit/paper/v1_21/build/libs/cartograph-paper-1.21-*.jar
 bukkit/folia/v1_21/build/libs/cartograph-folia-1.21-*.jar
 bungeecord/v1_21/build/libs/cartograph-bungeecord-1.21-*.jar
 velocity/v1_21/build/libs/cartograph-velocity-1.21-*.jar
 neoforge/v1_21/build/libs/cartograph-neoforge-1.21-*.jar
+
+# Minecraft 26.1 line
+bukkit/spigot/v26_1/build/libs/cartograph-spigot-26.1-*.jar
+bukkit/paper/v26_1/build/libs/cartograph-paper-26.1-*.jar
+bukkit/folia/v26_1/build/libs/cartograph-folia-26.1-*.jar
+bungeecord/v26_1/build/libs/cartograph-bungeecord-26.1-*.jar
+velocity/v26_1/build/libs/cartograph-velocity-26.1-*.jar
+neoforge/v26_1/build/libs/cartograph-neoforge-26.1-*.jar
 ```
 
 **Running tests:**
@@ -217,6 +227,9 @@ cartograph-plugin/
 
 All platform modules depend on `common`, which contains the `Cartograph` facade, event buffer, telemetry client, and
 config model. Platform modules provide the entry point, config loader, and event listeners specific to their platform.
+Each platform is further split into per-Minecraft-line submodules (`v1_21`, `v26_1`) that produce the version-specific
+JARs; only NeoForge compiles distinct sources per line (for the `net.minecraft` API changes), while the others repackage
+the shared build.
 
 ## License
 
