@@ -1,7 +1,5 @@
 package gg.cartograph.plugin.common.events;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gg.cartograph.plugin.common.events.telemetry.TelemetryEvent;
 import gg.cartograph.plugin.common.logging.CartographLogger;
 
 import java.io.ByteArrayOutputStream;
@@ -11,22 +9,25 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.List;
 import java.util.Optional;
 import java.util.zip.GZIPOutputStream;
 
 /**
  * HTTP transport for flushed telemetry batches.
  *
- * <p>Wraps each batch in a {@link TelemetryEnvelope}, serializes to JSON,
- * gzip-compresses the payload, and POSTs it to the Cartograph ingest endpoint.
- * Designed to be called synchronously on the buffer's flush thread.</p>
+ * <p>Gzip-compresses a pre-serialized payload and POSTs it to the Cartograph
+ * ingest endpoint. Designed to be called synchronously on the buffer's flush
+ * thread — {@link #send(byte[])} never throws, it reports the outcome via a
+ * {@link SendResult} instead.</p>
  *
- * <p>Error handling:</p>
+ * <p>Response handling:</p>
  * <ul>
- *     <li><b>2xx</b> — success, returns normally</li>
- *     <li><b>4xx</b> — logs an error, returns normally (batch discarded)</li>
- *     <li><b>5xx</b> — throws {@link RuntimeException} to trigger buffer retry</li>
+ *     <li><b>2xx</b> — {@link SendResult#ok()}</li>
+ *     <li><b>429 / 503</b> — {@link SendResult#retry(Duration)}, honoring the
+ *         {@code Retry-After} header when present</li>
+ *     <li><b>other 5xx, or an I/O failure</b> — {@link SendResult#retry(Duration)}
+ *         with no {@code Retry-After} hint</li>
+ *     <li><b>other 4xx</b> — {@link SendResult#discard()} (batch is not retried)</li>
  * </ul>
  */
 public class TelemetryClient
@@ -41,8 +42,6 @@ public class TelemetryClient
     private final CartographLogger logger;
 
     private final HttpClient httpClient;
-
-    private final ObjectMapper mapper;
 
     public TelemetryClient(String apiEndpoint, String apiKey, CartographLogger logger)
     {
@@ -62,67 +61,6 @@ public class TelemetryClient
         this.apiKey      = apiKey;
         this.logger      = logger;
         this.httpClient  = httpClient;
-        this.mapper      = new ObjectMapper();
-    }
-
-    /**
-     * Sends a batch of telemetry events to the Cartograph API.
-     *
-     * <p>If the API key is blank, logs a warning and returns without sending.
-     * The batch is consumed (not retried) since there is no valid destination.</p>
-     *
-     * @param events the batch of events to send
-     */
-    public void send(List<TelemetryEvent> events)
-    {
-        if (apiKey == null || apiKey.isBlank()) {
-            logger.warn("Telemetry not sent — API key is not configured");
-            return;
-        }
-
-        var envelope = new TelemetryEnvelope(System.currentTimeMillis(), events);
-        logger.debug("Sending batch of " + events.size() + " events to " + apiEndpoint + "/ingest");
-
-        byte[] compressed;
-        try {
-            var json = mapper.writeValueAsBytes(envelope);
-            compressed = gzip(json);
-            logger.debug("Compressed payload: " + compressed.length + " bytes");
-        } catch (IOException e) {
-            logger.error("Failed to serialize telemetry batch", e);
-            return;
-        }
-
-        var request = HttpRequest.newBuilder()
-                                 .uri(URI.create(apiEndpoint + "/ingest"))
-                                 .timeout(REQUEST_TIMEOUT)
-                                 .header("Authorization", "Bearer " + apiKey)
-                                 .header("Content-Type", "application/json")
-                                 .header("Content-Encoding", "gzip")
-                                 .POST(HttpRequest.BodyPublishers.ofByteArray(compressed))
-                                 .build();
-
-        HttpResponse<Void> response;
-        try {
-            response = httpClient.send(request, HttpResponse.BodyHandlers.discarding());
-        } catch (IOException | InterruptedException e) {
-            if (e instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
-            throw new RuntimeException("HTTP request to Cartograph API failed", e);
-        }
-
-        var status = response.statusCode();
-
-        if (status >= 200 && status < 300) {
-            logger.debug("Telemetry batch of " + events.size() + " events sent successfully");
-        } else if (status >= 400 && status < 500) {
-            logger.error("Cartograph API rejected batch with status " + status + " — discarding");
-        } else if (status >= 500) {
-            throw new RuntimeException("Cartograph API returned status " + status);
-        } else {
-            logger.warn("Cartograph API returned unexpected status " + status + " — discarding");
-        }
     }
 
     /**

@@ -1,13 +1,22 @@
 package gg.cartograph.plugin.common;
 
+import gg.cartograph.plugin.common.config.BufferConfig;
 import gg.cartograph.plugin.common.config.CartographConfig;
+import gg.cartograph.plugin.common.events.Backoff;
 import gg.cartograph.plugin.common.events.EventBuffer;
 import gg.cartograph.plugin.common.events.EventTypes;
 import gg.cartograph.plugin.common.events.TelemetryClient;
+import gg.cartograph.plugin.common.events.TelemetryPayloadFactory;
+import gg.cartograph.plugin.common.events.spool.DiskSpool;
+import gg.cartograph.plugin.common.events.spool.MemorySpool;
+import gg.cartograph.plugin.common.events.spool.NoopSpool;
+import gg.cartograph.plugin.common.events.spool.Spool;
 import gg.cartograph.plugin.common.events.telemetry.HeartbeatTelemetryEvent;
 import gg.cartograph.plugin.common.events.telemetry.TelemetryEvent;
 import gg.cartograph.plugin.common.logging.CartographLogger;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -29,6 +38,8 @@ public class Cartograph
 
     private final Supplier<HeartbeatTelemetryEvent> heartbeatSupplier;
 
+    private final Path dataDir;
+
     private EventBuffer buffer;
 
     private ScheduledExecutorService heartbeatScheduler;
@@ -41,11 +52,12 @@ public class Cartograph
 
     private long startTime;
 
-    public Cartograph(CartographConfig config, CartographLogger logger, Supplier<HeartbeatTelemetryEvent> heartbeatSupplier)
+    public Cartograph(CartographConfig config, CartographLogger logger, Supplier<HeartbeatTelemetryEvent> heartbeatSupplier, Path dataDir)
     {
         this.config            = config;
         this.logger            = logger;
         this.heartbeatSupplier = heartbeatSupplier;
+        this.dataDir           = dataDir;
     }
 
     /**
@@ -57,11 +69,46 @@ public class Cartograph
         startTime = System.currentTimeMillis();
         sessionTracker = new SessionTracker(logger);
         telemetryClient = new TelemetryClient(config.getApiEndpoint(), config.getApiKey(), logger);
-        buffer = new EventBuffer(config.getBuffer(), telemetryClient::send, logger);
+        var factory = new TelemetryPayloadFactory();
+        var spool   = selectSpool(config.getBuffer(), dataDir, logger);
+        var backoff = new Backoff(config.getBuffer().getBackoff());
+        buffer = new EventBuffer(
+                config.getBuffer(),
+                events -> {
+                    try {
+                        return factory.prepare(events);
+                    } catch (IOException e) {
+                        logger.error("Failed to serialize telemetry batch", e);
+                        return null;
+                    }
+                },
+                telemetryClient::send,
+                spool,
+                backoff,
+                logger);
         buffer.start();
         startHeartbeat();
         logger.info("Cartograph started");
         disclose();
+    }
+
+    static Spool selectSpool(BufferConfig cfg, Path dataDir, CartographLogger logger)
+    {
+        switch (cfg.getFailureMode()) {
+            case NONE:
+                return new NoopSpool();
+            case MEMORY:
+                return new MemorySpool();
+            case DISK:
+            default:
+                try {
+                    return new DiskSpool(dataDir.resolve("spool"), logger);
+                } catch (IOException e) {
+                    logger.warn("Disk spool unavailable (" + e.getMessage()
+                            + ") — falling back to in-memory buffering");
+                    return new MemorySpool();
+                }
+        }
     }
 
     /**

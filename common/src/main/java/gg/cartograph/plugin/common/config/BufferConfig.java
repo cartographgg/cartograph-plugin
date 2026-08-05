@@ -10,7 +10,6 @@ package gg.cartograph.plugin.common.config;
  * <ul>
  *     <li><b>sizeThreshold</b> — flush after 50 events</li>
  *     <li><b>timeThreshold</b> — flush after 60 seconds</li>
- *     <li><b>maxRetries</b> — retry failed sends up to 3 times</li>
  * </ul>
  */
 public class BufferConfig
@@ -19,8 +18,6 @@ public class BufferConfig
     private int sizeThreshold = 50;
 
     private int timeThreshold = 60;
-
-    private int maxRetries = 3;
 
     private FailureMode failureMode = FailureMode.DISK;
     private DiskBufferConfig disk   = new DiskBufferConfig();
@@ -44,16 +41,6 @@ public class BufferConfig
     public void setTimeThreshold(int timeThreshold)
     {
         this.timeThreshold = timeThreshold;
-    }
-
-    public int getMaxRetries()
-    {
-        return maxRetries;
-    }
-
-    public void setMaxRetries(int maxRetries)
-    {
-        this.maxRetries = maxRetries;
     }
 
     public FailureMode getFailureMode() { return failureMode; }

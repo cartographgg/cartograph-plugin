@@ -41,7 +41,6 @@ class CartographConfigTest
 
         assertEquals(50, config.getBuffer().getSizeThreshold());
         assertEquals(60, config.getBuffer().getTimeThreshold());
-        assertEquals(3, config.getBuffer().getMaxRetries());
     }
 
     @Test

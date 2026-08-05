@@ -6,7 +6,10 @@ import gg.cartograph.plugin.common.events.telemetry.TelemetryEvent;
 import gg.cartograph.plugin.common.logging.CartographLogger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.nio.file.Path;
+import java.time.Duration;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,6 +27,9 @@ class CartographTest
 
     private Cartograph cartograph;
 
+    @TempDir
+    Path dataDir;
+
     @BeforeEach
     void setUp()
     {
@@ -35,7 +41,26 @@ class CartographTest
                 System.currentTimeMillis(), null, null, 0, 0L, 0L, 0.0, 0.0, null, null, null,
                 null, null, null, null
         );
-        cartograph        = new Cartograph(config, logger, heartbeatSupplier);
+        cartograph        = new Cartograph(config, logger, heartbeatSupplier, dataDir);
+    }
+
+    // Size-triggered flush now runs on the buffer's scheduler thread rather than
+    // inline, so mock verification of its side effects has to poll rather than
+    // assert immediately after the triggering record() call.
+    private void awaitWarn(String message)
+    {
+        long deadline = System.nanoTime() + Duration.ofSeconds(3).toNanos();
+        AssertionError failure;
+        do {
+            try {
+                verify(logger).warn(message);
+                return;
+            } catch (AssertionError e) {
+                failure = e;
+                try { Thread.sleep(10); } catch (InterruptedException ignored) { }
+            }
+        } while (System.nanoTime() < deadline);
+        throw failure;
     }
 
     @Test
@@ -56,7 +81,7 @@ class CartographTest
         cartograph.record(event("heartbeat"));
         cartograph.record(event("heartbeat"));
 
-        verify(logger).warn("Telemetry not sent \u2014 API key is not configured");
+        awaitWarn("Telemetry not sent \u2014 API key is not configured");
         cartograph.stop();
     }
 
@@ -112,7 +137,7 @@ class CartographTest
     void heartbeatNotScheduledWhenDisabled()
     {
         config.getTelemetry().get("heartbeat").setEnabled(false);
-        cartograph = new Cartograph(config, logger, heartbeatSupplier);
+        cartograph = new Cartograph(config, logger, heartbeatSupplier, dataDir);
         cartograph.start();
 
         verify(logger).info("Heartbeat disabled");
@@ -179,7 +204,7 @@ class CartographTest
 
         var config = CartographConfig.defaults();
         config.setFirstRun(true);
-        var cartograph = new Cartograph(config, logger, () -> null);
+        var cartograph = new Cartograph(config, logger, () -> null, dataDir);
 
         cartograph.disclose();
 
