@@ -92,8 +92,27 @@ public class VelocityConfigLoader
             if (bufferMap.containsKey("time-threshold")) {
                 buffer.setTimeThreshold((Integer) bufferMap.get("time-threshold"));
             }
-            if (bufferMap.containsKey("max-retries")) {
-                buffer.setMaxRetries((Integer) bufferMap.get("max-retries"));
+            if (bufferMap.containsKey("failure-mode")) {
+                buffer.setFailureMode(gg.cartograph.plugin.common.config.FailureMode.from(
+                        (String) bufferMap.get("failure-mode")));
+            }
+            var diskMap = (Map<String, Object>) bufferMap.get("disk");
+            if (diskMap != null) {
+                if (diskMap.containsKey("max-size-mb")) {
+                    buffer.getDisk().setMaxSizeMb((Integer) diskMap.get("max-size-mb"));
+                }
+                if (diskMap.containsKey("max-age-hours")) {
+                    buffer.getDisk().setMaxAgeHours((Integer) diskMap.get("max-age-hours"));
+                }
+            }
+            var backoffMap = (Map<String, Object>) bufferMap.get("backoff");
+            if (backoffMap != null) {
+                if (backoffMap.containsKey("max-seconds")) {
+                    buffer.getBackoff().setMaxSeconds((Integer) backoffMap.get("max-seconds"));
+                }
+                if (backoffMap.containsKey("retry-after-cap-seconds")) {
+                    buffer.getBackoff().setRetryAfterCapSeconds((Integer) backoffMap.get("retry-after-cap-seconds"));
+                }
             }
         }
 

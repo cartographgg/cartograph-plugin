@@ -79,7 +79,8 @@ public class CartographVelocityPlugin
             logger.error("Failed to load config", e);
             return;
         }
-        cartograph = new Cartograph(cartographConfig, new Slf4jCartographLogger(logger), this::buildHeartbeat);
+        cartograph = new Cartograph(cartographConfig, new Slf4jCartographLogger(logger), this::buildHeartbeat,
+                dataDirectory);
         cartograph.start();
         // Defer the boot event so probed plugins (ViaVersion, Geyser, Floodgate)
         // have finished their own ProxyInitializeEvent handlers. Without this,
