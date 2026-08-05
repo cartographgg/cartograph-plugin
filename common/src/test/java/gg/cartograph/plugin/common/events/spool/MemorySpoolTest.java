@@ -42,9 +42,11 @@ class MemorySpoolTest
     @Test void evictsByAge() {
         var s = new MemorySpool();
         long old = System.currentTimeMillis() - Duration.ofHours(48).toMillis();
+        long recent = System.currentTimeMillis();
         s.store(batch(old, 4));
-        s.store(batch(System.currentTimeMillis(), 4));
+        s.store(batch(recent, 4));
         s.evict(1024, Duration.ofHours(24));
         assertEquals(1, s.size());
+        assertEquals(recent, s.listOldestFirst().get(0).createdAtEpochMs());
     }
 }

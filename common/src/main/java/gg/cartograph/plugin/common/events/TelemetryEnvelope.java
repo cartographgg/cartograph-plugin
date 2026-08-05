@@ -9,10 +9,17 @@ import java.util.List;
  * Wire envelope that wraps a batch of telemetry events for the Cartograph API.
  *
  * <p>Each flushed batch is wrapped in an envelope before being POSTed. The
- * envelope carries the schema version and the timestamp of the send, allowing
- * the ingestion server to handle format migrations and clock-drift detection.</p>
+ * envelope carries the schema version and the timestamp the batch was
+ * assembled, allowing the ingestion server to handle format migrations.</p>
  *
- * @param sentAt the epoch-millisecond timestamp when this batch was sent
+ * <p>{@code sentAt} is stamped when the batch is assembled (in
+ * {@code TelemetryPayloadFactory.prepare}), not when it is POSTed, and is
+ * deliberately preserved across spool replays. For a batch that was spooled
+ * and later retried, this value can therefore be significantly older than
+ * the actual send time. A backend should treat it as an assembled-at
+ * timestamp, not as a live send clock.</p>
+ *
+ * @param sentAt the epoch-millisecond timestamp when this batch was assembled
  * @param events the telemetry events in this batch
  */
 public record TelemetryEnvelope(

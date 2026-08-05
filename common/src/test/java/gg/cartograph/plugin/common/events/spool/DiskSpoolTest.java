@@ -70,9 +70,11 @@ class DiskSpoolTest
     @Test void evictsByAge(@TempDir Path dir) throws Exception {
         var spool = new DiskSpool(dir, logger);
         long old = System.currentTimeMillis() - Duration.ofHours(48).toMillis();
+        long recent = System.currentTimeMillis();
         spool.store(batch(old, new byte[4]));
-        spool.store(batch(System.currentTimeMillis(), new byte[4]));
+        spool.store(batch(recent, new byte[4]));
         spool.evict(1024, Duration.ofHours(24));
         assertEquals(1, spool.size());
+        assertEquals(recent, spool.listOldestFirst().get(0).createdAtEpochMs());
     }
 }

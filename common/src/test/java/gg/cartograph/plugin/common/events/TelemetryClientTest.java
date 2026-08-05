@@ -88,6 +88,29 @@ class TelemetryClientTest
     }
 
     @SuppressWarnings("unchecked")
+    @Test void byteSendRetryAfterHttpDateInPastClampsToZero() throws Exception {
+        var resp = response(503, Map.of("Retry-After", List.of("Wed, 21 Oct 2015 07:28:00 GMT")));
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(resp);
+        var client = new TelemetryClient("https://api.cartograph.gg", "k", logger, httpClient);
+        var r = client.send(payload());
+        assertTrue(r.isRetry());
+        assertNotNull(r.retryAfter());
+        assertEquals(Duration.ZERO, r.retryAfter());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test void byteSendRetryAfterMalformedIgnored() throws Exception {
+        var resp = response(429, Map.of("Retry-After", List.of("not-a-date")));
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(resp);
+        var client = new TelemetryClient("https://api.cartograph.gg", "k", logger, httpClient);
+        var r = client.send(payload());
+        assertTrue(r.isRetry());
+        assertNull(r.retryAfter());
+    }
+
+    @SuppressWarnings("unchecked")
     @Test void byteSendIoExceptionRetries() throws Exception {
         when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
                 .thenThrow(new java.io.IOException("refused"));

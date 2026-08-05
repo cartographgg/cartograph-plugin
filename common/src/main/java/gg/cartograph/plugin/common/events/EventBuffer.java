@@ -79,57 +79,61 @@ public class EventBuffer
             }
         }
         if (triggerFlush) {
-            scheduler.execute(this::flush); // off the producer/tick thread
+            try {
+                scheduler.execute(this::flush); // off the producer/tick thread
+            } catch (java.util.concurrent.RejectedExecutionException ignored) {
+                /* shutting down; the buffered events are handled by the final flush or dropped best-effort */
+            }
         }
     }
 
     /** Runs only on the scheduler thread (or on the caller during shutdown's awaited submit). */
     public void flush()
     {
-        List<TelemetryEvent> batch;
-        synchronized (this) {
-            if (events.isEmpty() && spool.size() == 0) {
-                return;
+        try {
+            List<TelemetryEvent> batch;
+            synchronized (this) {
+                if (events.isEmpty() && spool.size() == 0) {
+                    return;
+                }
+                batch  = events;
+                events = new ArrayList<>();
             }
-            batch  = events;
-            events = new ArrayList<>();
-        }
 
-        PreparedBatch live = batch.isEmpty() ? null : prepare.apply(batch);
+            PreparedBatch live = batch.isEmpty() ? null : prepare.apply(batch);
 
-        if (backoff.blocked()) {
-            spill(live);
-            resetTimer();
-            return;
-        }
-
-        for (Spooled s : spool.listOldestFirst()) {
-            byte[] payload = spool.load(s);
-            SendResult result = payload == null ? SendResult.discard() : sender.apply(payload);
-            if (result.isOk()) {
-                spool.delete(s);
-                backoff.onSuccess();
-            } else if (result.isDiscard()) {
-                spool.delete(s);
-            } else { // RETRY
-                armBackoff(result);
-                spill(live); // the live batch was never attempted this cycle
-                resetTimer();
-                return;
-            }
-        }
-
-        if (live != null) {
-            SendResult result = sender.apply(live.payload());
-            if (result.isOk()) {
-                backoff.onSuccess();
-            } else if (result.isRetry()) {
-                armBackoff(result);
+            if (backoff.blocked()) {
                 spill(live);
-            } // DISCARD → drop
-        }
+                return;
+            }
 
-        resetTimer();
+            for (Spooled s : spool.listOldestFirst()) {
+                byte[] payload = spool.load(s);
+                SendResult result = payload == null ? SendResult.discard() : sender.apply(payload);
+                if (result.isOk()) {
+                    spool.delete(s);
+                    backoff.onSuccess();
+                } else if (result.isDiscard()) {
+                    spool.delete(s);
+                } else { // RETRY
+                    armBackoff(result);
+                    spill(live); // the live batch was never attempted this cycle
+                    return;
+                }
+            }
+
+            if (live != null) {
+                SendResult result = sender.apply(live.payload());
+                if (result.isOk()) {
+                    backoff.onSuccess();
+                } else if (result.isRetry()) {
+                    armBackoff(result);
+                    spill(live);
+                } // DISCARD → drop
+            }
+        } finally {
+            resetTimer();
+        }
     }
 
     public void shutdown()

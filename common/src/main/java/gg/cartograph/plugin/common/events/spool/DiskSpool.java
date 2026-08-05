@@ -75,8 +75,11 @@ public class DiskSpool implements Spool
             } catch (AtomicMoveNotSupportedException e) {
                 Files.move(tmp, fin, StandardCopyOption.REPLACE_EXISTING);
             }
-            index.put(name, new Entry(fin, batch.createdAtEpochMs(), batch.payload().length));
+            Entry old = index.put(name, new Entry(fin, batch.createdAtEpochMs(), batch.payload().length));
             totalBytes += batch.payload().length;
+            if (old != null) {
+                totalBytes -= old.sizeBytes();
+            }
         } catch (IOException e) {
             logger.warn("Failed to spill telemetry batch to disk: " + e.getMessage());
             tryDelete(tmp);
