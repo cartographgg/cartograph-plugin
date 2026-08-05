@@ -82,11 +82,12 @@ public class CartographNeoForgeMod
     {
         var pct = cartograph.getTickSampler().getPercentiles();
         cartograph.getTickSampler().reset();
+        var gc = cartograph.getGcSampler().sample();
 
         var heartbeat = cartographConfig.getTelemetry().get("heartbeat");
         var interval  = heartbeat != null ? heartbeat.getInterval() : null;
 
-        return NeoForgeHeartbeat.build(platform, minecraftServer, interval, pct, worldStats.snapshot());
+        return NeoForgeHeartbeat.build(platform, minecraftServer, interval, pct, worldStats.snapshot(), gc);
     }
 
     private BootTelemetryEvent buildBootEvent()

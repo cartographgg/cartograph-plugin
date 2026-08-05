@@ -1,5 +1,6 @@
 package gg.cartograph.plugin.neoforge;
 
+import gg.cartograph.plugin.common.GcDelta;
 import gg.cartograph.plugin.common.TickPercentiles;
 import gg.cartograph.plugin.common.events.WorldInfo;
 import gg.cartograph.plugin.common.world.WorldStatsSnapshot;
@@ -38,7 +39,8 @@ class NeoForgeHeartbeatTest
         var event = NeoForgeHeartbeat.build(
                 new FakePlatform(), "server", 60,
                 new TickPercentiles(1.0, 2.0, 3.0, 4.0),
-                new WorldStatsSnapshot(42, null, List.of()));
+                new WorldStatsSnapshot(42, null, List.of()),
+                new GcDelta(2L, 15L));
 
         assertEquals(7, event.playerCount());
         assertEquals(60, event.effectiveInterval());
@@ -48,5 +50,7 @@ class NeoForgeHeartbeatTest
         assertEquals(3.0, event.p99());
         assertEquals(42, event.chunksLoaded());
         assertEquals(12.5, event.tps()[0]);
+        assertEquals(2L, event.gcCount());
+        assertEquals(15L, event.gcTimeMs());
     }
 }

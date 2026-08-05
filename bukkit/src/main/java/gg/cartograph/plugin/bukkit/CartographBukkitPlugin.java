@@ -89,6 +89,7 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
 
         var pct = cartograph.getTickSampler().getPercentiles();
         cartograph.getTickSampler().reset();
+        var gc = cartograph.getGcSampler().sample();
 
         var heartbeat = cartographConfig.getTelemetry().get("heartbeat");
         var interval  = heartbeat != null ? heartbeat.getInterval() : null;
@@ -110,7 +111,9 @@ public abstract class CartographBukkitPlugin extends JavaPlugin
                 pct.p50(),
                 pct.p95(),
                 pct.p99(),
-                interval
+                interval,
+                gc.count(),
+                gc.timeMs()
         );
     }
 

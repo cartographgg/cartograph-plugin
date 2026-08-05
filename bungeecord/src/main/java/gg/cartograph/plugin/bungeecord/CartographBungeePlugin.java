@@ -78,6 +78,8 @@ public class CartographBungeePlugin extends Plugin
         var heartbeat = cartographConfig.getTelemetry().get("heartbeat");
         var interval  = heartbeat != null ? heartbeat.getInterval() : null;
 
+        var gc = cartograph.getGcSampler().sample();
+
         return new HeartbeatTelemetryEvent(
                 System.currentTimeMillis(),
                 null,
@@ -93,7 +95,9 @@ public class CartographBungeePlugin extends Plugin
                 null,
                 null,
                 null,
-                interval
+                interval,
+                gc.count(),
+                gc.timeMs()
         );
     }
 

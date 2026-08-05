@@ -34,6 +34,8 @@ import java.util.List;
  * @param p95               95th percentile tick time (MSPT) since last heartbeat
  * @param p99               99th percentile tick time (MSPT) since last heartbeat
  * @param effectiveInterval the heartbeat interval in effect, in seconds
+ * @param gcCount           GC collections in this heartbeat window
+ * @param gcTimeMs          total GC pause time (ms) in this heartbeat window
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record HeartbeatTelemetryEvent(
@@ -51,7 +53,9 @@ public record HeartbeatTelemetryEvent(
         @JsonGetter("p50") Double p50,
         @JsonGetter("p95") Double p95,
         @JsonGetter("p99") Double p99,
-        @JsonGetter("iv") Integer effectiveInterval
+        @JsonGetter("iv") Integer effectiveInterval,
+        @JsonGetter("gc") Long gcCount,
+        @JsonGetter("gt") Long gcTimeMs
 ) implements TelemetryEvent
 {
     @Override

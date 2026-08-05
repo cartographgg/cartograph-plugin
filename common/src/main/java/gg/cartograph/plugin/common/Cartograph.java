@@ -48,6 +48,8 @@ public class Cartograph
 
     private TickSampler tickSampler;
 
+    private GcSampler gcSampler;
+
     private TelemetryClient telemetryClient;
 
     private long startTime;
@@ -67,6 +69,7 @@ public class Cartograph
     public void start()
     {
         startTime = System.currentTimeMillis();
+        gcSampler = new GcSampler();
         sessionTracker = new SessionTracker(logger);
         telemetryClient = new TelemetryClient(config.getApiEndpoint(), config.getApiKey(), logger);
         var factory = new TelemetryPayloadFactory();
@@ -189,6 +192,11 @@ public class Cartograph
             tickSampler = new TickSampler();
         }
         return tickSampler;
+    }
+
+    public GcSampler getGcSampler()
+    {
+        return gcSampler;
     }
 
     /**

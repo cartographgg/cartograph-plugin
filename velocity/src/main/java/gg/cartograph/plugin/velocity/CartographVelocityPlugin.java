@@ -104,6 +104,8 @@ public class CartographVelocityPlugin
         var heartbeat = cartographConfig.getTelemetry().get("heartbeat");
         var interval  = heartbeat != null ? heartbeat.getInterval() : null;
 
+        var gc = cartograph.getGcSampler().sample();
+
         return new HeartbeatTelemetryEvent(
                 System.currentTimeMillis(),
                 null,
@@ -119,7 +121,9 @@ public class CartographVelocityPlugin
                 null,
                 null,
                 null,
-                interval
+                interval,
+                gc.count(),
+                gc.timeMs()
         );
     }
 

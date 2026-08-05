@@ -1,5 +1,6 @@
 package gg.cartograph.plugin.neoforge;
 
+import gg.cartograph.plugin.common.GcDelta;
 import gg.cartograph.plugin.common.TickPercentiles;
 import gg.cartograph.plugin.common.events.telemetry.HeartbeatTelemetryEvent;
 import gg.cartograph.plugin.common.world.WorldStatsSnapshot;
@@ -21,7 +22,7 @@ final class NeoForgeHeartbeat
 
     static HeartbeatTelemetryEvent build(
             NeoForgePlatform platform, Object server, Integer interval,
-            TickPercentiles pct, WorldStatsSnapshot stats)
+            TickPercentiles pct, WorldStatsSnapshot stats, GcDelta gc)
     {
         var runtime = Runtime.getRuntime();
         var osBean  = (com.sun.management.OperatingSystemMXBean)
@@ -42,7 +43,9 @@ final class NeoForgeHeartbeat
                 pct.p50(),
                 pct.p95(),
                 pct.p99(),
-                interval
+                interval,
+                gc.count(),
+                gc.timeMs()
         );
     }
 }
