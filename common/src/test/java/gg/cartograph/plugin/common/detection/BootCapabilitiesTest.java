@@ -91,6 +91,40 @@ class BootCapabilitiesTest
     }
 
     @Test
+    void detectPlayerProtocolReturnsNullWhenViaVersionIsNotOnClasspath()
+    {
+        // com.viaversion.viaversion.api.Via is not on the common test classpath,
+        // so the per-player probe must return null silently.
+        var result = BootCapabilities.detectPlayerProtocol(java.util.UUID.randomUUID(), NOOP);
+
+        assertNull(result);
+    }
+
+    @Test
+    void detectPlayerProtocolWithExplicitLoaderReturnsNullWhenViaVersionNotFound()
+    {
+        var emptyLoader = new java.net.URLClassLoader(new java.net.URL[0], null);
+
+        var result = BootCapabilities.detectPlayerProtocol(emptyLoader, java.util.UUID.randomUUID(), NOOP);
+
+        assertNull(result);
+    }
+
+    @Test
+    void normalizeProtocolMapsNonPositiveToNull()
+    {
+        assertNull(BootCapabilities.normalizeProtocol(-1));
+        assertNull(BootCapabilities.normalizeProtocol(0));
+    }
+
+    @Test
+    void normalizeProtocolPassesThroughPositiveProtocol()
+    {
+        assertEquals(Integer.valueOf(769), BootCapabilities.normalizeProtocol(769));
+        assertEquals(Integer.valueOf(47), BootCapabilities.normalizeProtocol(47));
+    }
+
+    @Test
     void detectBedrockSupportReturnsNullWhenNeitherPluginIsOnClasspath()
     {
         var result = BootCapabilities.detectBedrockSupport(NOOP);

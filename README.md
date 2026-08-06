@@ -153,7 +153,7 @@ Sent periodically (default every 60 seconds).
 
 - Player UUID and username
 - Whether the player is new (first join)
-- Client protocol version
+- Client protocol version (on server platforms, requires ViaVersion)
 - Player locale
 - Connection hostname (the address the player used to connect)
 - Current world

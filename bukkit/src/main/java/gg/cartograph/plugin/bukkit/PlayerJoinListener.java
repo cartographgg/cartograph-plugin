@@ -1,6 +1,7 @@
 package gg.cartograph.plugin.bukkit;
 
 import gg.cartograph.plugin.common.Cartograph;
+import gg.cartograph.plugin.common.detection.BootCapabilities;
 import gg.cartograph.plugin.common.events.telemetry.PlayerJoinTelemetryEvent;
 import gg.cartograph.plugin.common.logging.CartographLogger;
 import org.bukkit.event.EventHandler;
@@ -50,7 +51,7 @@ class PlayerJoinListener implements Listener
                 player.getUniqueId(),
                 player.getName(),
                 !player.hasPlayedBefore(),
-                null,
+                BootCapabilities.detectPlayerProtocol(player.getUniqueId(), logger),
                 player.getLocale(),
                 player.getWorld().getName(),
                 isFloodgate,

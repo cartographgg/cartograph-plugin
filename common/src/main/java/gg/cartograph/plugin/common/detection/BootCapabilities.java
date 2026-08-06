@@ -7,6 +7,7 @@ import gg.cartograph.plugin.common.logging.CartographLogger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Detects client-version and Bedrock support capabilities by reflectively
@@ -64,6 +65,52 @@ public final class BootCapabilities
             logger.warn("ViaVersion present but API call failed: " + e);
             return null;
         }
+    }
+
+    /**
+     * Reads a single player's client protocol version from ViaVersion using the
+     * caller's classloader. Suitable for Bukkit / BungeeCord where Cartograph's
+     * plugin classloader can see the ViaVersion plugin.
+     */
+    public static Integer detectPlayerProtocol(UUID uuid, CartographLogger logger)
+    {
+        return detectPlayerProtocol(null, uuid, logger);
+    }
+
+    /**
+     * Reads a single player's client protocol version from ViaVersion using an
+     * explicit classloader. See {@link #detectClientVersion(ClassLoader, CartographLogger)}
+     * for why the explicit-loader overload exists. Returns {@code null} when
+     * ViaVersion is absent, the player is not tracked, or the API call fails —
+     * a client not bridged by ViaVersion shares the server's protocol, which the
+     * backend derives from the reported server version.
+     */
+    public static Integer detectPlayerProtocol(ClassLoader viaLoader, UUID uuid, CartographLogger logger)
+    {
+        try {
+            var viaClass = loadClass("com.viaversion.viaversion.api.Via", viaLoader);
+            var api = viaClass.getMethod("getAPI").invoke(null);
+            int protocol = (int) api.getClass()
+                    .getMethod("getPlayerVersion", UUID.class)
+                    .invoke(api, uuid);
+            return normalizeProtocol(protocol);
+        } catch (ClassNotFoundException e) {
+            return null;
+        } catch (Throwable e) {
+            logger.warn("ViaVersion present but getPlayerVersion failed: " + e);
+            return null;
+        }
+    }
+
+    /**
+     * Maps ViaVersion's raw {@code getPlayerVersion} result to a nullable
+     * protocol. ViaVersion returns {@code -1} when the player is no longer
+     * connected or is not tracked; we surface any non-positive value as
+     * {@code null} rather than emit a bogus protocol.
+     */
+    static Integer normalizeProtocol(int raw)
+    {
+        return raw > 0 ? raw : null;
     }
 
     /**
