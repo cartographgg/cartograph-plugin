@@ -52,4 +52,8 @@ public interface NeoForgePlatform
     String  playerLocale(Object player);
 
     String  playerWorld(Object player);
+
+    Integer playerProtocol(Object player);
+
+    String  playerHostname(Object player);
 }

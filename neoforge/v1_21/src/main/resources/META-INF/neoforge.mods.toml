@@ -2,6 +2,9 @@ modLoader = "javafml"
 loaderVersion = "[1,)"
 license = "All Rights Reserved"
 
+[[mixins]]
+config = "cartograph.mixins.json"
+
 [[mods]]
 modId = "cartograph"
 version = "${version}"

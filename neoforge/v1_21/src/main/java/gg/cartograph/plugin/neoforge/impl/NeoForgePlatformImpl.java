@@ -2,8 +2,11 @@ package gg.cartograph.plugin.neoforge.impl;
 
 import gg.cartograph.plugin.common.events.WorldInfo;
 import gg.cartograph.plugin.common.events.WorldMetrics;
+import gg.cartograph.plugin.common.util.Hostnames;
 import gg.cartograph.plugin.common.world.WorldStatsSnapshot;
+import gg.cartograph.plugin.neoforge.CartographHandshakeInfo;
 import gg.cartograph.plugin.neoforge.NeoForgePlatform;
+import gg.cartograph.plugin.neoforge.mixin.ServerCommonListenerAccessor;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -83,4 +86,28 @@ public class NeoForgePlatformImpl implements NeoForgePlatform
 
     @Override
     public String playerWorld(Object p) { return player(p).level().dimension().location().toString(); }
+
+    @Override
+    public Integer playerProtocol(Object p)
+    {
+        var info = handshakeInfo(player(p));
+        return info == null ? null : info.cartographProtocol();
+    }
+
+    @Override
+    public String playerHostname(Object p)
+    {
+        var info = handshakeInfo(player(p));
+        return info == null ? null : Hostnames.normalize(info.cartographHostname());
+    }
+
+    private static CartographHandshakeInfo handshakeInfo(ServerPlayer player)
+    {
+        var listener = player.connection;
+        if (listener == null) {
+            return null;
+        }
+        var connection = ((ServerCommonListenerAccessor) listener).cartographConnection();
+        return connection instanceof CartographHandshakeInfo info ? info : null;
+    }
 }

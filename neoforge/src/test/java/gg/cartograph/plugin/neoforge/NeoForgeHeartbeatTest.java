@@ -31,6 +31,10 @@ class NeoForgeHeartbeatTest
         public String playerName(Object p)         { return "Steve"; }
         public String playerLocale(Object p)       { return "en_us"; }
         public String playerWorld(Object p)        { return "minecraft:overworld"; }
+        @Override
+        public Integer playerProtocol(Object p)    { return null; }
+        @Override
+        public String playerHostname(Object p)     { return null; }
     }
 
     @Test

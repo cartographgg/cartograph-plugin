@@ -57,13 +57,12 @@ class PlayerJoinListener
                 System.currentTimeMillis(),
                 uuid,
                 name,
-                null,
-                null,
+                null, // firstJoin (fj) — deferred; needs native player-data
+                platform.playerProtocol(player),
                 platform.playerLocale(player),
                 platform.playerWorld(player),
                 isFloodgate,
-                // hostname: handshake capture deferred to the NeoForge follow-up spec
-                null
+                platform.playerHostname(player)
         ));
         cartograph.getSessionTracker().trackJoin(uuid);
         logger.debug("Player joined: " + name + " (" + uuid + "), floodgate: " + isFloodgate);
