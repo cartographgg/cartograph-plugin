@@ -43,12 +43,33 @@ public class BufferConfig
         this.timeThreshold = timeThreshold;
     }
 
-    public FailureMode getFailureMode() { return failureMode; }
-    public void setFailureMode(FailureMode failureMode) { this.failureMode = failureMode; }
+    public FailureMode getFailureMode()
+    {
+        return failureMode;
+    }
 
-    public DiskBufferConfig getDisk() { return disk; }
-    public void setDisk(DiskBufferConfig disk) { this.disk = disk; }
+    public void setFailureMode(FailureMode failureMode)
+    {
+        this.failureMode = failureMode;
+    }
 
-    public BackoffConfig getBackoff() { return backoff; }
-    public void setBackoff(BackoffConfig backoff) { this.backoff = backoff; }
+    public DiskBufferConfig getDisk()
+    {
+        return disk;
+    }
+
+    public void setDisk(DiskBufferConfig disk)
+    {
+        this.disk = disk;
+    }
+
+    public BackoffConfig getBackoff()
+    {
+        return backoff;
+    }
+
+    public void setBackoff(BackoffConfig backoff)
+    {
+        this.backoff = backoff;
+    }
 }

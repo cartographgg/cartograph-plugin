@@ -62,6 +62,7 @@ public class DiskSpool implements Spool
         }
     }
 
+    @Override
     public void store(PreparedBatch batch)
     {
         String name = fileName(batch.createdAtEpochMs());
@@ -86,6 +87,7 @@ public class DiskSpool implements Spool
         }
     }
 
+    @Override
     public List<Spooled> listOldestFirst()
     {
         var out = new ArrayList<Spooled>(index.size());
@@ -95,6 +97,7 @@ public class DiskSpool implements Spool
         return out;
     }
 
+    @Override
     public byte[] load(Spooled spooled)
     {
         Entry e = index.get((String) spooled.handle());
@@ -110,8 +113,10 @@ public class DiskSpool implements Spool
         }
     }
 
+    @Override
     public void delete(Spooled spooled) { removeByName((String) spooled.handle()); }
 
+    @Override
     public void evict(long maxBytes, Duration maxAge)
     {
         long cutoff = System.currentTimeMillis() - maxAge.toMillis();
@@ -132,6 +137,7 @@ public class DiskSpool implements Spool
         }
     }
 
+    @Override
     public int size() { return index.size(); }
 
     private void removeByName(String name)

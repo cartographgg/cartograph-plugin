@@ -16,12 +16,14 @@ public class MemorySpool implements Spool
     private long totalBytes = 0;
     private long seq = 0;
 
+    @Override
     public void store(PreparedBatch batch)
     {
         items.addLast(new Item(seq++, batch.payload(), batch.createdAtEpochMs()));
         totalBytes += batch.payload().length;
     }
 
+    @Override
     public List<Spooled> listOldestFirst()
     {
         var out = new ArrayList<Spooled>(items.size());
@@ -31,6 +33,7 @@ public class MemorySpool implements Spool
         return out;
     }
 
+    @Override
     public byte[] load(Spooled spooled)
     {
         long id = (Long) spooled.handle();
@@ -42,6 +45,7 @@ public class MemorySpool implements Spool
         return null;
     }
 
+    @Override
     public void delete(Spooled spooled)
     {
         long id = (Long) spooled.handle();
@@ -55,6 +59,7 @@ public class MemorySpool implements Spool
         }
     }
 
+    @Override
     public void evict(long maxBytes, Duration maxAge)
     {
         long cutoff = System.currentTimeMillis() - maxAge.toMillis();
@@ -66,5 +71,6 @@ public class MemorySpool implements Spool
         }
     }
 
+    @Override
     public int size() { return items.size(); }
 }

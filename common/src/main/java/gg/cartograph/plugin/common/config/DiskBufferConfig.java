@@ -8,12 +8,33 @@ public class DiskBufferConfig
     private int maxSizeMb   = 8;
     private int maxAgeHours = 24;
 
-    public int getMaxSizeMb() { return maxSizeMb; }
-    public void setMaxSizeMb(int v) { this.maxSizeMb = Math.max(1, v); }
+    public int getMaxSizeMb()
+    {
+        return maxSizeMb;
+    }
 
-    public int getMaxAgeHours() { return maxAgeHours; }
-    public void setMaxAgeHours(int v) { this.maxAgeHours = Math.max(1, v); }
+    public void setMaxSizeMb(int v)
+    {
+        this.maxSizeMb = Math.max(1, v);
+    }
 
-    public long maxSizeBytes() { return (long) maxSizeMb * 1024L * 1024L; }
-    public Duration maxAge() { return Duration.ofHours(maxAgeHours); }
+    public int getMaxAgeHours()
+    {
+        return maxAgeHours;
+    }
+
+    public void setMaxAgeHours(int v)
+    {
+        this.maxAgeHours = Math.max(1, v);
+    }
+
+    public long maxSizeBytes()
+    {
+        return (long) maxSizeMb * 1024L * 1024L;
+    }
+
+    public Duration maxAge()
+    {
+        return Duration.ofHours(maxAgeHours);
+    }
 }
